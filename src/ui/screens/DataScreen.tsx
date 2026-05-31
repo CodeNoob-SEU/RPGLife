@@ -2,6 +2,7 @@ import { ScrollView, View } from 'react-native';
 import { useGameStore } from '../../store/useGameStore';
 import { dateStr } from '../../domain/dateUtils';
 import { bestTrialStreak, currentDayStreak, completionRate, heatmapCells, goldTrend, lifetimeTotals } from '../../domain/stats';
+import { ACHIEVEMENTS } from '../../domain/achievements';
 import { colors, pixelBorder, space } from '../theme';
 import { PixelPanel, PixelText, PixelProgressBar, SectionTitle, EmptyState } from '../components/Pixel';
 
@@ -22,7 +23,10 @@ export function DataScreen() {
   const ledger = useGameStore((s) => s.ledger);
   const trials = useGameStore((s) => s.trials);
   const config = useGameStore((s) => s.config);
+  const achievements = useGameStore((s) => s.achievements);
 
+  const unlockedAt = achievements.unlockedAt;
+  const unlockedCount = Object.keys(unlockedAt).length;
   const today = dateStr(new Date());
   const totals = lifetimeTotals(ledger);
   const cells = heatmapCells(history, today, HEATMAP_DAYS);
@@ -75,6 +79,27 @@ export function DataScreen() {
               ))}
             </View>
           ) : null}
+        </View>
+      </PixelPanel>
+
+      {/* 成就墙 */}
+      <PixelPanel>
+        <View style={{ gap: space(2) }}>
+          <PixelText style={{ color: colors.gold, fontWeight: 'bold' }}>成就墙（{unlockedCount}/{ACHIEVEMENTS.length}）</PixelText>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space(2) }}>
+            {ACHIEVEMENTS.map((a) => {
+              const at = unlockedAt[a.id];
+              const on = !!at;
+              return (
+                <View key={a.id} style={[{ width: '47%', padding: space(2), gap: space(1), backgroundColor: on ? colors.bgDeep : '#202234', opacity: on ? 1 : 0.55, borderColor: on ? colors.gold : colors.border }, pixelBorder]}>
+                  <PixelText style={{ fontSize: 20 }}>{on ? a.icon : '🔒'}</PixelText>
+                  <PixelText style={{ color: on ? colors.ink : colors.textDim, fontWeight: 'bold', fontSize: 12 }}>{a.title}</PixelText>
+                  <PixelText style={{ color: colors.textDim, fontSize: 10 }}>{a.desc}</PixelText>
+                  {on ? <PixelText style={{ color: colors.success, fontSize: 10 }}>✅ {at}</PixelText> : null}
+                </View>
+              );
+            })}
+          </View>
         </View>
       </PixelPanel>
 
