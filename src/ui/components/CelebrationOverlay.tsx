@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { View } from 'react-native';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, withDelay, runOnJS, Easing } from 'react-native-reanimated';
 import { useGameStore } from '../../store/useGameStore';
@@ -22,12 +22,18 @@ export function CelebrationOverlay() {
 
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.6);
+  const animatingRef = useRef(false);
 
   useEffect(() => {
-    if (!head) return;
+    // Serialize with animatingRef so a re-render mid-animation (e.g. a new celebration
+    // pushed while one is playing) cannot restart/skip the in-flight one. finish() drops
+    // the flag and consumes; the queue-length change then re-fires the effect for the next.
+    if (!head || animatingRef.current) return;
+    animatingRef.current = true;
+    const finish = () => { animatingRef.current = false; actions.consumeCelebration(); };
     opacity.value = 0;
     scale.value = 0.6;
-    opacity.value = withSequence(withTiming(1, { duration: 200 }), withDelay(700, withTiming(0, { duration: 300, easing: Easing.in(Easing.quad) }, (fin) => { if (fin) runOnJS(actions.consumeCelebration)(); })));
+    opacity.value = withSequence(withTiming(1, { duration: 200 }), withDelay(700, withTiming(0, { duration: 300, easing: Easing.in(Easing.quad) }, (fin) => { if (fin) runOnJS(finish)(); })));
     scale.value = withSequence(withTiming(1.1, { duration: 200 }), withTiming(1, { duration: 150 }));
   }, [head, pending.length]);
 

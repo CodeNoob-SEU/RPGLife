@@ -117,3 +117,22 @@ test('checkInTrial is a no-op on an archived (soft-archived) trial', () => {
   expect(t.completedDates).toHaveLength(0);
   expect(s.getState().player.gold).toBe(goldBefore);
 });
+
+test('importState deep-fills missing fields via migrate and scrubs transient signals', () => {
+  const s = makeStore();
+  // hand-editable JSON: keeps gold, omits bosses/config, carries stale pending* signals
+  const partial: any = {
+    version: 1,
+    player: { name: 'X', level: 1, exp: 0, expTotal: 0, gold: 777, avatarTier: 0, lastActiveDate: '2026-06-01' },
+    dailies: [],
+    pendingNotice: 'longAbsence',
+    pendingCelebrations: ['levelUp'],
+  };
+  s.getState().actions.importState(partial);
+  const st = s.getState();
+  expect(st.player.gold).toBe(777);               // persisted value kept
+  expect(Array.isArray(st.bosses)).toBe(true);    // missing array backfilled by migrate
+  expect(st.config.cashOutThreshold).toBe(1000);  // missing config backfilled by migrate
+  expect(st.pendingNotice).toBeNull();            // transient scrubbed
+  expect(st.pendingCelebrations).toEqual([]);     // transient scrubbed
+});

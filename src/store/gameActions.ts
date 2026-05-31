@@ -10,6 +10,7 @@ import {
   cashOut as domainCashOut,
 } from '../domain/actions';
 import { createInitialState } from '../domain/initialState';
+import { migrate } from '../domain/migrate';
 import { genId } from './idGen';
 
 const MILESTONES = [
@@ -93,6 +94,13 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   setConfig: (patch) => set((s) => { Object.assign(s.config, patch); }),
   consumeCelebration: () => set((s) => { s.pendingCelebrations.shift(); }),
   consumeNotice: () => set((s) => { s.pendingNotice = null; }),
-  importState: (data) => set((s) => { Object.assign(s, data); }),
+  importState: (data) => set((s) => {
+    // Deep-fill any missing/partial fields via migrate (hand-edited JSON may omit arrays/config),
+    // and scrub transient UI signals so an import can't replay a stale notice/celebration.
+    const full = migrate(data, 0);
+    full.pendingCelebrations = [];
+    full.pendingNotice = null;
+    Object.assign(s, full);
+  }),
   reset: (now = new Date()) => set((s) => { Object.assign(s, createInitialState(now)); }),
 });
