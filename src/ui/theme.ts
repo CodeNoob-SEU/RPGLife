@@ -25,3 +25,9 @@ export const pixelShadow = {
   shadowRadius: 0,
   elevation: 4,
 };
+
+/** 字体族：body=Zpix（覆盖中英数像素字形）；display=Press Start 2P（仅英文/数字大标题，无 CJK）。 */
+export const font = {
+  body: 'Zpix' as string | undefined,
+  display: 'PressStart2P_400Regular',
+};
