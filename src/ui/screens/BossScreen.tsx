@@ -5,6 +5,7 @@ import { Boss } from '../../domain/types';
 import { colors, space } from '../theme';
 import { PixelButton, PixelText, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle, EmptyState } from '../components/Pixel';
 import { BossCard } from '../components/BossCard';
+import { haptics } from '../haptics';
 
 type Draft = {
   name: string; maxHp: string; damagePerHit: string;
@@ -34,6 +35,8 @@ export function BossScreen() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [archiving, setArchiving] = useState<Boss | null>(null);
+  const [attacking, setAttacking] = useState<Boss | null>(null);
+  const [atkDmg, setAtkDmg] = useState('');
 
   const openNew = () => { setEditingId(null); setDraft({ ...emptyDraft }); };
   const openEdit = (b: Boss) => {
@@ -75,7 +78,7 @@ export function BossScreen() {
       ) : null}
 
       {active.map((b) => (
-        <BossCard key={b.id} boss={b} nameOf={nameOf} onEdit={() => openEdit(b)} onArchive={() => setArchiving(b)} />
+        <BossCard key={b.id} boss={b} nameOf={nameOf} onEdit={() => openEdit(b)} onArchive={() => setArchiving(b)} onAttack={() => { setAttacking(b); setAtkDmg(String(b.damagePerHit)); }} />
       ))}
 
       <PixelModal visible={!!draft} onRequestClose={() => setDraft(null)}>
@@ -109,6 +112,20 @@ export function BossScreen() {
               <View style={{ flex: 1 }}><PixelButton label="保存" color={colors.success} onPress={saveDraft} /></View>
             </View>
           </ScrollView>
+        ) : null}
+      </PixelModal>
+
+      <PixelModal visible={!!attacking} onRequestClose={() => setAttacking(null)}>
+        {attacking ? (
+          <View style={{ gap: space(2) }}>
+            <PixelText style={{ color: colors.gold, fontWeight: 'bold', fontSize: 16 }}>⚔ 攻击「{attacking.name}」</PixelText>
+            <PixelText style={{ color: colors.ink }}>当前 {attacking.hp}/{attacking.maxHp} HP。输入本次伤害值：</PixelText>
+            <PixelTextInput value={atkDmg} onChangeText={setAtkDmg} numeric />
+            <View style={{ flexDirection: 'row', gap: space(2), marginTop: space(2) }}>
+              <View style={{ flex: 1 }}><PixelButton label="取消" color={colors.bgDeep} onPress={() => setAttacking(null)} /></View>
+              <View style={{ flex: 1 }}><PixelButton label="攻击" color={colors.accent} onPress={() => { haptics.heavy(); actions.attackBoss(attacking.id, Math.max(1, Number(atkDmg) || attacking.damagePerHit)); setAttacking(null); }} /></View>
+            </View>
+          </View>
         ) : null}
       </PixelModal>
 

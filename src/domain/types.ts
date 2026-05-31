@@ -37,7 +37,7 @@ export interface Config {
 }
 export interface BossHit { bossId: string; damage: number; clearedStages: number[]; defeated: boolean; }
 export interface Receipt {
-  rid: string; kind: 'daily' | 'weekly' | 'trial' | 'oneoff'; taskId: string; date: DateStr;
+  rid: string; kind: 'daily' | 'weekly' | 'trial' | 'oneoff' | 'boss'; taskId: string; date: DateStr;
   goldDelta: number; expDelta: number;
   claimedMilestones?: number[]; graduation?: { addedDailyId: string }; bossHits?: BossHit[];
 }

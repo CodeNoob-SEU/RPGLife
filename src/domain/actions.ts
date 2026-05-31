@@ -1,4 +1,4 @@
-import { AppState, Receipt, Trial } from './types';
+import { AppState, Boss, Receipt, Trial } from './types';
 import { dateStr, weekKey, weekKeyStr } from './dateUtils';
 import { addGold, applyExpDelta, pushCelebration } from './economy';
 import { computeStreak } from './trials';
@@ -27,30 +27,47 @@ function allWeekliesDone(state: AppState, week: string): boolean {
   return active.length > 0 && active.every((w) => w.doneWeek === week);
 }
 
-/** 完成关联任务对 Boss 造成伤害；跨阶段阈值发该段奖励；记入 receipt 以便撤销。 */
+/** 对单个 Boss 施加 dmg 伤害：扣血 + 跨阶段阈值发该段奖励 + 击杀判定，全部记入 receipt 以便撤销。 */
+export function applyBossHit(state: AppState, r: Receipt, b: Boss, dmg: number, now: Date): void {
+  if (b.defeated || b.archived) return;
+  const before = b.hp;
+  b.hp = Math.max(0, b.hp - dmg);
+  const actual = before - b.hp; // 记录实际造成的伤害（过量击杀不溢出），撤销才能精确回血
+  const cleared: number[] = [];
+  for (let i = 1; i <= 3; i++) {
+    const threshold = (b.maxHp * (3 - i)) / 3; // 阶段1<=2/3, 2<=1/3, 3<=0
+    if (b.hp <= threshold && !b.clearedStages.includes(i)) {
+      b.clearedStages.push(i);
+      cleared.push(i);
+      addGoldR(state, r, Math.floor(b.totalRewardGold * b.weights[i - 1]), 'bonus', `Boss「${b.name}」阶段${i}`, now);
+      addExpR(state, r, Math.floor(b.totalRewardExp * b.weights[i - 1]));
+    }
+  }
+  let defeated = false;
+  if (b.hp <= 0 && !b.defeated) {
+    b.defeated = true;
+    defeated = true;
+    pushCelebration(state, 'bossDefeated');
+  }
+  (r.bossHits ??= []).push({ bossId: b.id, damage: actual, clearedStages: cleared, defeated });
+}
+
+/** 完成关联任务对 Boss 造成伤害（dmg=damagePerHit）；记入 receipt 以便撤销。 */
 export function applyBossDamageForTask(state: AppState, r: Receipt, taskId: string, now: Date): void {
   for (const b of state.bosses) {
     if (b.defeated || b.archived || !b.linkedTaskIds.includes(taskId)) continue;
-    const dmg = b.damagePerHit;
-    b.hp = Math.max(0, b.hp - dmg);
-    const cleared: number[] = [];
-    for (let i = 1; i <= 3; i++) {
-      const threshold = (b.maxHp * (3 - i)) / 3; // 阶段1<=2/3, 2<=1/3, 3<=0
-      if (b.hp <= threshold && !b.clearedStages.includes(i)) {
-        b.clearedStages.push(i);
-        cleared.push(i);
-        addGoldR(state, r, Math.floor(b.totalRewardGold * b.weights[i - 1]), 'bonus', `Boss「${b.name}」阶段${i}`, now);
-        addExpR(state, r, Math.floor(b.totalRewardExp * b.weights[i - 1]));
-      }
-    }
-    let defeated = false;
-    if (b.hp <= 0 && !b.defeated) {
-      b.defeated = true;
-      defeated = true;
-      pushCelebration(state, 'bossDefeated');
-    }
-    (r.bossHits ??= []).push({ bossId: b.id, damage: dmg, clearedStages: cleared, defeated });
+    applyBossHit(state, r, b, b.damagePerHit, now);
   }
+}
+
+/** 手动攻击 Boss（自定义伤害值，下限 1）。建 'boss' 回执，同日可撤。不依赖关联任务。 */
+export function attackBoss(state: AppState, bossId: string, damage: number, now: Date): void {
+  const b = state.bosses.find((x) => x.id === bossId);
+  if (!b || b.defeated || b.archived) return;
+  const dmg = Math.max(1, Math.floor(damage));
+  const r = newReceipt('boss', bossId, dateStr(now));
+  applyBossHit(state, r, b, dmg, now);
+  state.todayReceipts.push(r);
 }
 
 export function checkInDaily(state: AppState, id: string, now: Date): void {

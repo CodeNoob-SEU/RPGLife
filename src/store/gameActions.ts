@@ -7,6 +7,7 @@ import {
   checkInTrial as domainCheckInTrial,
   checkInOneoff as domainCheckInOneoff,
   undoCheckIn,
+  attackBoss as domainAttackBoss,
   buyFreezeCard as domainBuyFreezeCard,
   cashOut as domainCashOut,
 } from '../domain/actions';
@@ -43,6 +44,7 @@ export interface GameActions {
   addBoss: (b: { name: string; icon?: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; linkedTaskIds: string[]; weights?: [number, number, number] }) => void;
   editBoss: (id: string, patch: Partial<{ name: string; icon: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; weights: [number, number, number]; linkedTaskIds: string[] }>) => void;
   archiveBoss: (id: string) => void;
+  attackBoss: (bossId: string, damage: number, now?: Date) => void;
   setConfig: (patch: Partial<Config>) => void;
   consumeCelebration: () => void;
   consumeNotice: () => void;
@@ -102,6 +104,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
     // 但进行中的 Boss 进度条可能与新刻度阈值略不一致。MVP 可接受。
   }),
   archiveBoss: (id) => set((s) => { const b = s.bosses.find((x) => x.id === id); if (b) b.archived = true; }),
+  attackBoss: (bossId, damage, now = new Date()) => set((s) => { domainAttackBoss(s, bossId, damage, now); }),
 
   setConfig: (patch) => set((s) => { Object.assign(s.config, patch); }),
   consumeCelebration: () => set((s) => { s.pendingCelebrations.shift(); }),
