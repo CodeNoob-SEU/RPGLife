@@ -3,6 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { useGameStore } from '../../store/useGameStore';
 import { Config } from '../../domain/types';
 import { CURRENT_VERSION } from '../../domain/version';
+import { ledgerToCSV } from '../../domain/stats';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, PixelTextInput, ConfirmDialog, SectionTitle, PixelToggle } from '../components/Pixel';
 import { syncReminder } from '../notifications';
@@ -26,6 +27,7 @@ const FIELDS: Array<{ key: keyof Config; label: string }> = [
 
 export function SettingsScreen() {
   const config = useGameStore((s) => s.config);
+  const ledger = useGameStore((s) => s.ledger);
   const actions = useGameStore((s) => s.actions);
 
   const [draft, setDraft] = useState<Record<string, string>>(() => Object.fromEntries(FIELDS.map((f) => [f.key, String(config[f.key])])));
@@ -108,7 +110,10 @@ export function SettingsScreen() {
       <SectionTitle>导出 / 导入存档</SectionTitle>
       <PixelPanel>
         <View style={{ gap: space(2) }}>
-          <PixelButton label="生成导出 JSON" color={colors.bgPanel} onPress={doExport} />
+          <View style={{ flexDirection: 'row', gap: space(2) }}>
+            <View style={{ flex: 1 }}><PixelButton label="导出 JSON（完整存档）" color={colors.bgPanel} onPress={doExport} /></View>
+            <View style={{ flex: 1 }}><PixelButton label="导出 CSV（流水账）" color={colors.bgPanel} onPress={() => setExportText(ledgerToCSV(ledger))} /></View>
+          </View>
           {exportText ? <PixelTextInput value={exportText} onChangeText={() => {}} multiline /> : null}
           <PixelText style={{ color: colors.ink }}>粘贴 JSON 导入（覆盖当前存档）：</PixelText>
           <PixelTextInput value={importText} onChangeText={setImportText} placeholder='{"version":2,...}' multiline />

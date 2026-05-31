@@ -1,5 +1,5 @@
 import { Trial, HistoryEntry, LedgerEntry } from '../src/domain/types';
-import { bestTrialStreak, currentDayStreak, completionRate, heatmapCells, goldTrend, lifetimeTotals } from '../src/domain/stats';
+import { bestTrialStreak, currentDayStreak, completionRate, heatmapCells, goldTrend, lifetimeTotals, ledgerToCSV } from '../src/domain/stats';
 
 const H = (over: Partial<HistoryEntry> = {}): HistoryEntry => ({ status: 'perfect', dailiesDone: 0, dailiesTotal: 0, goldNet: 0, ...over });
 const trial = (over: Partial<Trial> = {}): Trial => ({
@@ -71,4 +71,15 @@ test('currentDayStreak 连续非 missed 天数（含今日未记录则从昨日�
   expect(currentDayStreak(history2, '2026-06-01')).toBe(2);
   // 今日(06-02)未记录 → 从昨日(06-01)起算
   expect(currentDayStreak(history, '2026-06-02')).toBe(3);
+});
+
+test('ledgerToCSV：表头 + 行 + 逗号字段转义', () => {
+  const csv = ledgerToCSV([
+    { ts: 0, date: '2026-06-01', type: 'earn', amount: 10, note: '完成每日: 喝水' },
+    { ts: 0, date: '2026-06-01', type: 'bonus', amount: 50, expAmount: 20, note: '含,逗号' },
+  ]);
+  const lines = csv.split('\n');
+  expect(lines[0]).toBe('date,type,amount,expAmount,note');
+  expect(lines[1]).toBe('2026-06-01,earn,10,,完成每日: 喝水');
+  expect(lines[2]).toBe('2026-06-01,bonus,50,20,"含,逗号"');
 });

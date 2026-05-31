@@ -78,6 +78,17 @@ export function currentDayStreak(history: History, asOf: DateStr): number {
   return count;
 }
 
+/** 把流水账导出为 CSV（含表头，字段含逗号/引号/换行时按 RFC4180 转义）。 */
+export function ledgerToCSV(ledger: LedgerEntry[]): string {
+  const esc = (v: string | number): string => {
+    const s = String(v);
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  };
+  const header = 'date,type,amount,expAmount,note';
+  const rows = ledger.map((l) => [l.date, l.type, l.amount, l.expAmount ?? '', l.note].map(esc).join(','));
+  return [header, ...rows].join('\n');
+}
+
 /** 累计统计（按 ledger 类型汇总）。 */
 export function lifetimeTotals(ledger: LedgerEntry[]): {
   earned: number; penalties: number; spent: number; cashedOut: number; tasksCompleted: number;
