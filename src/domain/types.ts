@@ -61,4 +61,5 @@ export interface AppState {
   pendingCelebrations: CelebrationKind[];
   pendingNotice: 'longAbsence' | null;
   onboarded: boolean; // 是否完成首启引导（v6+）
+  reportSeenDate: DateStr | null; // 昨日战报最近查看日期（每日仅弹一次，v7+）
 }

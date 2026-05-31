@@ -52,6 +52,7 @@ export interface GameActions {
   consumeCelebration: () => void;
   consumeNotice: () => void;
   setOnboarded: (v: boolean) => void;
+  markReportSeen: (now?: Date) => void;
   importState: (data: AppState) => void;
   reset: (now?: Date) => void;
 }
@@ -115,6 +116,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   consumeCelebration: () => set((s) => { s.pendingCelebrations.shift(); }),
   consumeNotice: () => set((s) => { s.pendingNotice = null; }),
   setOnboarded: (v) => set((s) => { s.onboarded = v; }),
+  markReportSeen: (now = new Date()) => set((s) => { s.reportSeenDate = dateStr(now); }),
   importState: (data) => set((s) => {
     // Deep-fill any missing/partial fields via migrate (hand-edited JSON may omit arrays/config),
     // and scrub transient UI signals so an import can't replay a stale notice/celebration.

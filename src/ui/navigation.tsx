@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { colors } from './theme';
 import { TopStatusBar } from './components/TopStatusBar';
 import { CelebrationOverlay } from './components/CelebrationOverlay';
+import { MorningReport } from './components/MorningReport';
 import { QuestsScreen } from './screens/QuestsScreen';
 import { TrialsScreen } from './screens/TrialsScreen';
 import { BossScreen } from './screens/BossScreen';
@@ -40,6 +41,7 @@ export function RootNavigation() {
         </View>
       </NavigationContainer>
       <CelebrationOverlay />
+      <MorningReport />
     </View>
   );
 }
