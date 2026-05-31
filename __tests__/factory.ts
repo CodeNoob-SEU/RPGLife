@@ -26,6 +26,7 @@ export function makeState(over: Partial<AppState> = {}): AppState {
     ledger: [], history: {},
     todayReceipts: [], dailyPerfect: null, weeklyPerfect: null,
     pendingCelebrations: [], pendingNotice: null,
+    onboarded: true,
     ...over,
   };
 }

@@ -60,4 +60,5 @@ export interface AppState {
   weeklyPerfect: { week: WeekKey; gold: number; exp: number } | null;
   pendingCelebrations: CelebrationKind[];
   pendingNotice: 'longAbsence' | null;
+  onboarded: boolean; // 是否完成首启引导（v6+）
 }

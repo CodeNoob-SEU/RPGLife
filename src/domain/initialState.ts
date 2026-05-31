@@ -52,5 +52,6 @@ export function createInitialState(now: Date): AppState {
     ledger: [], history: {},
     todayReceipts: [], dailyPerfect: null, weeklyPerfect: null,
     pendingCelebrations: [], pendingNotice: null,
+    onboarded: false,
   };
 }

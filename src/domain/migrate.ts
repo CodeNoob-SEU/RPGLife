@@ -32,6 +32,7 @@ export function migrate(persisted: unknown, _fromVersion: number): AppState {
     weeklyPerfect: p.weeklyPerfect ?? null,
     pendingCelebrations: p.pendingCelebrations ?? [],
     pendingNotice: p.pendingNotice ?? null,
+    onboarded: p.onboarded ?? false,
     version: CURRENT_VERSION,
   };
 }
