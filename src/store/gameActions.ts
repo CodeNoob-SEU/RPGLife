@@ -11,6 +11,7 @@ import {
   buyFreezeCard as domainBuyFreezeCard,
   cashOut as domainCashOut,
   openDailyChest as domainOpenDailyChest,
+  slipAnti as domainSlipAnti,
 } from '../domain/actions';
 import { createInitialState } from '../domain/initialState';
 import { migrate } from '../domain/migrate';
@@ -44,6 +45,10 @@ export interface GameActions {
   addOneoff: (name: string, gold: number, exp: number, icon?: string, category?: string) => void;
   editOneoff: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string; category: string }>) => void;
   archiveOneoff: (id: string) => void;
+  slipAnti: (id: string, now?: Date) => void;
+  addAnti: (name: string, penalty: number, icon?: string) => void;
+  editAnti: (id: string, patch: Partial<{ name: string; icon: string; penalty: number }>) => void;
+  archiveAnti: (id: string) => void;
   addBoss: (b: { name: string; icon?: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; linkedTaskIds: string[]; weights?: [number, number, number] }) => void;
   editBoss: (id: string, patch: Partial<{ name: string; icon: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; weights: [number, number, number]; linkedTaskIds: string[] }>) => void;
   archiveBoss: (id: string) => void;
@@ -96,6 +101,11 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   }),
   editOneoff: (id, patch) => set((s) => { const o = s.oneoffs.find((x) => x.id === id); if (o) Object.assign(o, patch); }),
   archiveOneoff: (id) => set((s) => { const o = s.oneoffs.find((x) => x.id === id); if (o) o.archived = true; }),
+
+  slipAnti: (id, now = new Date()) => set((s) => { domainSlipAnti(s, id, now); }),
+  addAnti: (name, penalty, icon = '📵') => set((s) => { s.antis.push({ id: genId('anti'), name, icon, penalty, archived: false }); }),
+  editAnti: (id, patch) => set((s) => { const a = s.antis.find((x) => x.id === id); if (a) Object.assign(a, patch); }),
+  archiveAnti: (id) => set((s) => { const a = s.antis.find((x) => x.id === id); if (a) a.archived = true; }),
 
   addBoss: (b) => set((s) => {
     s.bosses.push({ id: genId('boss'), name: b.name, icon: b.icon ?? '👹', maxHp: b.maxHp, hp: b.maxHp, damagePerHit: b.damagePerHit, totalRewardGold: b.totalRewardGold, totalRewardExp: b.totalRewardExp, weights: b.weights ?? [0.2, 0.3, 0.5], linkedTaskIds: b.linkedTaskIds, clearedStages: [], defeated: false, archived: false });

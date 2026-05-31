@@ -45,6 +45,9 @@ export function createInitialState(now: Date): AppState {
       { id: 'o-desk', name: '整理书桌', gold: 30, exp: 15, icon: '🗂️', doneDate: null, archived: false, category: '生活' },
       { id: 'o-checkup', name: '预约体检', gold: 60, exp: 30, icon: '🏥', doneDate: null, archived: false, category: '健康' },
     ],
+    antis: [
+      { id: 'a-phone', name: '刷手机超 1 小时', icon: '📱', penalty: 30, archived: false },
+    ],
     inventory: { freezeCards: 1 },
     achievements: { unlockedAt: {} },
     dailyChest: null,

@@ -18,7 +18,7 @@ export function makeState(over: Partial<AppState> = {}): AppState {
   return {
     version: CURRENT_VERSION,
     player: { name: '冒险者', level: 1, exp: 0, expTotal: 0, gold: 0, avatarTier: 0, lastActiveDate: null },
-    dailies: [], weeklies: [], trials: [], bosses: [], oneoffs: [],
+    dailies: [], weeklies: [], trials: [], bosses: [], oneoffs: [], antis: [],
     inventory: { freezeCards: 0 },
     achievements: { unlockedAt: {} },
     dailyChest: null,

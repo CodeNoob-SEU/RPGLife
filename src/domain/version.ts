@@ -5,6 +5,6 @@
  *
  * 版本链：v1 基线 → v2 配置偏好(reduceMotion/sound/haptics) → v3 一次性委托(oneoffs) → v4 成就(achievements)
  *  → v5 每日宝箱(dailyChest + config 区间) → v6 首启引导(onboarded) → v7 昨日战报(reportSeenDate)
- *  → v8 本地提醒(config reminderEnabled/reminderHour)。
+ *  → v8 本地提醒(config reminderEnabled/reminderHour) → v9 禁忌任务(antis)。
  */
-export const CURRENT_VERSION = 8;
+export const CURRENT_VERSION = 9;

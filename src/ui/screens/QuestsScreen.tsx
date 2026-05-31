@@ -5,6 +5,7 @@ import { dateStr } from '../../domain/dateUtils';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, SectionTitle, EmptyState, ConfirmDialog } from '../components/Pixel';
 import { QuestFormModal, QuestKind, QuestDraft } from '../components/QuestFormModal';
+import { AntiFormModal, AntiDraft } from '../components/AntiFormModal';
 import { useGainFloat } from '../components/GainFloat';
 import { haptics } from '../haptics';
 
@@ -15,6 +16,7 @@ export function QuestsScreen() {
   const dailies = useGameStore((s) => s.dailies).filter((d) => !d.archived);
   const weeklies = useGameStore((s) => s.weeklies).filter((w) => !w.archived);
   const oneoffs = useGameStore((s) => s.oneoffs).filter((o) => !o.archived);
+  const antis = useGameStore((s) => s.antis).filter((a) => !a.archived);
   const todayReceipts = useGameStore((s) => s.todayReceipts);
   const dailyChest = useGameStore((s) => s.dailyChest);
   const actions = useGameStore((s) => s.actions);
@@ -30,7 +32,8 @@ export function QuestsScreen() {
   const [manage, setManage] = useState(false);
   const [showDone, setShowDone] = useState(false);
   const [form, setForm] = useState<{ kind: QuestKind; editId: string | null; initial: QuestDraft } | null>(null);
-  const [del, setDel] = useState<{ kind: QuestKind; id: string; name: string } | null>(null);
+  const [del, setDel] = useState<{ kind: QuestKind | 'anti'; id: string; name: string } | null>(null);
+  const [antiForm, setAntiForm] = useState<{ editId: string | null; initial: AntiDraft } | null>(null);
   const [catFilter, setCatFilter] = useState<string | null>(null);
   const catMatch = (c?: string) => !catFilter || c === catFilter;
 
@@ -80,8 +83,24 @@ export function QuestsScreen() {
     if (!del) return;
     if (del.kind === 'daily') actions.archiveDaily(del.id);
     else if (del.kind === 'weekly') actions.archiveWeekly(del.id);
-    else actions.archiveOneoff(del.id);
+    else if (del.kind === 'oneoff') actions.archiveOneoff(del.id);
+    else actions.archiveAnti(del.id);
     setDel(null);
+  };
+  const onSlip = (id: string) => {
+    haptics.warning();
+    const before = useGameStore.getState().player.gold;
+    actions.slipAnti(id);
+    const dg = useGameStore.getState().player.gold - before;
+    if (dg !== 0) fire(dg, 0);
+  };
+  const openAddAnti = () => setAntiForm({ editId: null, initial: { name: '', icon: '📵', penalty: '30' } });
+  const openEditAnti = (a: { id: string; name: string; icon: string; penalty: number }) => setAntiForm({ editId: a.id, initial: { name: a.name, icon: a.icon, penalty: String(a.penalty) } });
+  const saveAntiForm = (v: { name: string; icon: string; penalty: number }) => {
+    if (!antiForm) return;
+    if (antiForm.editId) actions.editAnti(antiForm.editId, v);
+    else actions.addAnti(v.name, v.penalty, v.icon);
+    setAntiForm(null);
   };
 
   const renderHeader = (title: string, kind: QuestKind) => (
@@ -196,6 +215,30 @@ export function QuestsScreen() {
               </PixelPanel>
             ))
           : null}
+
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space(2) }}>
+          <SectionTitle>禁忌（想避免）</SectionTitle>
+          <PixelButton label="＋ 新增" color={colors.bgPanel} onPress={openAddAnti} />
+        </View>
+        {antis.length === 0 ? (
+          <EmptyState icon="🚫" title="还没有禁忌" hint="把想戒掉的行为放这里；每犯一次点「记一次」扣金币，温柔提醒自己。" />
+        ) : null}
+        {antis.map((a) => (
+          <PixelPanel key={a.id}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
+              <PixelText style={{ fontSize: 18 }}>{a.icon}</PixelText>
+              <PixelText style={{ color: colors.ink, flex: 1 }}>{a.name}　-🪙{a.penalty}</PixelText>
+              {manage ? (
+                <View style={{ flexDirection: 'row', gap: space(2) }}>
+                  <PixelButton label="编辑" color={colors.bgPanel} onPress={() => openEditAnti(a)} />
+                  <PixelButton label="删除" color={colors.danger} onPress={() => setDel({ kind: 'anti', id: a.id, name: a.name })} />
+                </View>
+              ) : (
+                <PixelButton label="记一次" color={colors.danger} onPress={() => onSlip(a.id)} />
+              )}
+            </View>
+          </PixelPanel>
+        ))}
       </ScrollView>
 
       <QuestFormModal
@@ -205,6 +248,13 @@ export function QuestsScreen() {
         initial={form?.initial ?? { name: '', gold: '', exp: '', icon: '', category: '' }}
         onCancel={() => setForm(null)}
         onSave={saveForm}
+      />
+      <AntiFormModal
+        visible={!!antiForm}
+        editing={!!antiForm?.editId}
+        initial={antiForm?.initial ?? { name: '', icon: '', penalty: '' }}
+        onCancel={() => setAntiForm(null)}
+        onSave={saveAntiForm}
       />
       <ConfirmDialog
         visible={!!del}

@@ -231,6 +231,17 @@ export function cashOut(state: AppState, amount: number, now: Date): boolean {
   return true;
 }
 
+/** 禁忌「记一次」：扣 penalty 金币（实际损失，永不为负）+ 'anti' 回执（同日可撤）。不发经验、不参与 rollover。 */
+export function slipAnti(state: AppState, id: string, now: Date): void {
+  const a = state.antis.find((x) => x.id === id);
+  if (!a || a.archived) return;
+  const loss = Math.min(Math.max(0, a.penalty), state.player.gold);
+  const r = newReceipt('anti', id, dateStr(now));
+  addGold(state, -loss, 'penalty', `禁忌: ${a.name}`, now); // 经 NaN 守卫 + 记 ledger penalty
+  r.goldDelta = -loss; // 通用 undoCheckIn 按 -goldDelta 精确回补
+  state.todayReceipts.push(r);
+}
+
 /** 开启每日宝箱：随机金币（[min,max]，rand∈[0,1) 由调用方注入便于测试），同日仅一次。返回奖励额（0=今日已开）。 */
 export function openDailyChest(state: AppState, now: Date, rand: number): number {
   const today = dateStr(now);
