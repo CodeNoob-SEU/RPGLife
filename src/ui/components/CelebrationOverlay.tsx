@@ -14,6 +14,7 @@ const TEXT: Record<CelebrationKind, { title: string; color: string }> = {
   perfectWeek: { title: '每周全清！🏆', color: colors.success },
   graduation: { title: '试炼毕业！🎓', color: colors.exp },
   bossDefeated: { title: 'BOSS 击杀！☠', color: colors.danger },
+  achievement: { title: '成就解锁！🏅', color: colors.gold },
 };
 
 const BIG: CelebrationKind[] = ['levelUp', 'bossDefeated', 'perfectWeek'];

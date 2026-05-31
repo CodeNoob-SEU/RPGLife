@@ -1,7 +1,7 @@
 export type DateStr = string;  // 'YYYY-MM-DD'（本地时区）
 export type WeekKey = string;  // 'YYYY-Www' ISO 周
 
-export type CelebrationKind = 'levelUp' | 'perfectDay' | 'perfectWeek' | 'graduation' | 'bossDefeated';
+export type CelebrationKind = 'levelUp' | 'perfectDay' | 'perfectWeek' | 'graduation' | 'bossDefeated' | 'achievement';
 export type LedgerType = 'earn' | 'penalty' | 'purchase' | 'cashout' | 'bonus' | 'undo';
 
 export interface Daily { id: string; name: string; gold: number; exp: number; icon: string; doneDate: DateStr | null; archived: boolean; }
@@ -47,6 +47,7 @@ export interface AppState {
   player: Player;
   dailies: Daily[]; weeklies: Weekly[]; trials: Trial[]; bosses: Boss[]; oneoffs: OneOff[];
   inventory: { freezeCards: number };
+  achievements: { unlockedAt: Record<string, DateStr> }; // 成就 id → 解锁日期
   restDays: { weekKey: WeekKey; remaining: number };
   config: Config;
   ledger: LedgerEntry[];

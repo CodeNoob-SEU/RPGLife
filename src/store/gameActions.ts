@@ -13,6 +13,7 @@ import {
 } from '../domain/actions';
 import { createInitialState } from '../domain/initialState';
 import { migrate } from '../domain/migrate';
+import { evaluateAchievements } from '../domain/achievements';
 import { genId } from './idGen';
 
 const MILESTONES = [
@@ -58,14 +59,14 @@ type SetFn = (recipe: (s: GameStore) => void) => void;
 type GetFn = () => GameStore;
 
 export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
-  rollover: (now = new Date()) => set((s) => { processRollover(s, now); }),
-  checkInDaily: (id, now = new Date()) => set((s) => { domainCheckInDaily(s, id, now); }),
-  checkInWeekly: (id, now = new Date()) => set((s) => { domainCheckInWeekly(s, id, now); }),
-  checkInTrial: (id, now = new Date()) => set((s) => { domainCheckInTrial(s, id, now); }),
-  checkInOneoff: (id, now = new Date()) => set((s) => { domainCheckInOneoff(s, id, now); }),
+  rollover: (now = new Date()) => set((s) => { processRollover(s, now); evaluateAchievements(s, now); }),
+  checkInDaily: (id, now = new Date()) => set((s) => { domainCheckInDaily(s, id, now); evaluateAchievements(s, now); }),
+  checkInWeekly: (id, now = new Date()) => set((s) => { domainCheckInWeekly(s, id, now); evaluateAchievements(s, now); }),
+  checkInTrial: (id, now = new Date()) => set((s) => { domainCheckInTrial(s, id, now); evaluateAchievements(s, now); }),
+  checkInOneoff: (id, now = new Date()) => set((s) => { domainCheckInOneoff(s, id, now); evaluateAchievements(s, now); }),
   undo: (rid, now = new Date()) => set((s) => { undoCheckIn(s, rid, now); }),
   buyFreezeCard: (now = new Date()) => set((s) => { domainBuyFreezeCard(s, now); }),
-  cashOut: (amount, now = new Date()) => set((s) => { domainCashOut(s, amount, now); }),
+  cashOut: (amount, now = new Date()) => set((s) => { domainCashOut(s, amount, now); evaluateAchievements(s, now); }),
 
   addDaily: (name, gold, exp, icon = '📝') => set((s) => {
     s.dailies.push({ id: genId('daily'), name, gold, exp, icon, doneDate: null, archived: false });
@@ -104,7 +105,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
     // 但进行中的 Boss 进度条可能与新刻度阈值略不一致。MVP 可接受。
   }),
   archiveBoss: (id) => set((s) => { const b = s.bosses.find((x) => x.id === id); if (b) b.archived = true; }),
-  attackBoss: (bossId, damage, now = new Date()) => set((s) => { domainAttackBoss(s, bossId, damage, now); }),
+  attackBoss: (bossId, damage, now = new Date()) => set((s) => { domainAttackBoss(s, bossId, damage, now); evaluateAchievements(s, now); }),
 
   setConfig: (patch) => set((s) => { Object.assign(s.config, patch); }),
   consumeCelebration: () => set((s) => { s.pendingCelebrations.shift(); }),

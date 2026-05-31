@@ -44,6 +44,7 @@ export function createInitialState(now: Date): AppState {
       { id: 'o-checkup', name: '预约体检', gold: 60, exp: 30, icon: '🏥', doneDate: null, archived: false },
     ],
     inventory: { freezeCards: 1 },
+    achievements: { unlockedAt: {} },
     restDays: { weekKey: weekKey(now), remaining: defaultConfig.restDaysPerWeek },
     config: { ...defaultConfig },
     ledger: [], history: {},
