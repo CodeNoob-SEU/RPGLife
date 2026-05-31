@@ -796,3 +796,8 @@ git add -A && git commit -m "chore: verify Plan 2 store+shell loop on expo-web"
 
 ## 延到 Plan 3
 试炼屏、讨伐(Boss)屏、商店屏（冻结卡+提现）、设置屏（配置编辑/导出导入/重置）、reanimated 动画（金币飞行/升级/全清/Boss）、像素字体加载、CelebrationOverlay 消费 `pendingCelebrations`、`pendingNotice` 长时间未用提示。
+
+### Plan 3 起手必先处理（终审发现）
+- **`Trial`/`Boss` 缺 `archived` 字段**：当前 `archiveTrial` 是物理删除（`gameActions.ts`），违反 spec §7.11「归档不删除」；且没有 `archiveBoss`。Plan 2 无 UI 调用故零影响。Plan 3 建试炼/讨伐屏前：给 `Trial`/`Boss` 加 `archived` 字段、`archiveTrial` 改软归档、新增 `archiveBoss`，并让 `settleTrials`/Boss 逻辑跳过 archived。
+- 补 `editTrial`/`editBoss` action。
+- **可选加固测试**：① 断言 persist 的 `partialize` + 默认 merge 后 `actions` 仍在（rehydrate 不丢函数）；② 断言 `migrate` 在版本不匹配时「持久化数组替换、不与 seed 合并/重复」。当前这两个不变量仅靠 expo-web 手动刷新验证过。
