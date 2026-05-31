@@ -6,10 +6,10 @@ import { TopStatusBar } from './components/TopStatusBar';
 import { QuestsScreen } from './screens/QuestsScreen';
 import { TrialsScreen } from './screens/TrialsScreen';
 import { BossScreen } from './screens/BossScreen';
+import { ShopScreen } from './screens/ShopScreen';
 import { Placeholder } from './screens/Placeholder';
 
 const Tab = createBottomTabNavigator();
-const Shop = () => <Placeholder title="商店" />;
 const Settings = () => <Placeholder title="设置" />;
 
 const ICON: Record<string, string> = { 委托: '📜', 试炼: '🎯', 讨伐: '👹', 商店: '🏪', 设置: '⚙️' };
@@ -32,7 +32,7 @@ export function RootNavigation() {
           <Tab.Screen name="委托" component={QuestsScreen} />
           <Tab.Screen name="试炼" component={TrialsScreen} />
           <Tab.Screen name="讨伐" component={BossScreen} />
-          <Tab.Screen name="商店" component={Shop} />
+          <Tab.Screen name="商店" component={ShopScreen} />
           <Tab.Screen name="设置" component={Settings} />
         </Tab.Navigator>
       </View>
