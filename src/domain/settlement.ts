@@ -1,5 +1,6 @@
 import { AppState, DateStr, WeekKey } from './types';
-import { weekKeyStr } from './dateUtils';
+import { dateStr, weekKey, weekKeyStr, daysFrom, daysBetween, isWeekEnd } from './dateUtils';
+import { settleTrials } from './trials';
 
 export function ensureRestDayQuota(state: AppState, wk: WeekKey): void {
   if (state.restDays.weekKey !== wk) {
@@ -34,4 +35,31 @@ export function recordHistory(state: AppState, D: DateStr, forceRest: boolean): 
   const goldNet = state.ledger.filter((l) => l.date === D).reduce((sum, l) => sum + l.amount, 0);
   const status = forceRest ? 'rest' : total === 0 ? 'rest' : done === total ? 'perfect' : done === 0 ? 'missed' : 'partial';
   state.history[D] = { status, dailiesDone: done, dailiesTotal: total, goldNet };
+}
+
+export function processRollover(state: AppState, now: Date): void {
+  const today = dateStr(now);
+  const last = state.player.lastActiveDate;
+  if (last === null) {
+    state.player.lastActiveDate = today;
+    ensureRestDayQuota(state, weekKey(now));
+    return;
+  }
+  if (today === last) return;
+
+  state.todayReceipts = []; // 跨天 -> 清空回执（撤销天然限当天）
+  const gap = daysBetween(last, today);
+  const longAbsence = gap > state.config.longAbsenceThreshold;
+
+  for (const D of daysFrom(last, today)) {
+    ensureRestDayQuota(state, weekKeyStr(D));
+    if (!longAbsence) settleDailies(state, D, now);
+    settleTrials(state, D);
+    if (isWeekEnd(D) && !longAbsence) settleWeeklies(state, D, now);
+    recordHistory(state, D, longAbsence);
+  }
+
+  ensureRestDayQuota(state, weekKey(now));
+  if (longAbsence) state.pendingNotice = 'longAbsence';
+  state.player.lastActiveDate = today;
 }
