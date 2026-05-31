@@ -183,3 +183,18 @@ export function undoCheckIn(state: AppState, rid: string, now: Date): void {
 
   state.todayReceipts.splice(idx, 1);
 }
+
+export function buyFreezeCard(state: AppState, now: Date): boolean {
+  if (state.player.gold < state.config.freezeCardCost) return false;
+  state.player.gold -= state.config.freezeCardCost;
+  state.inventory.freezeCards += 1;
+  state.ledger.push({ ts: now.getTime(), date: dateStr(now), type: 'purchase', amount: -state.config.freezeCardCost, note: '购买冻结卡' });
+  return true;
+}
+
+export function cashOut(state: AppState, amount: number, now: Date): boolean {
+  if (amount < state.config.cashOutThreshold || amount > state.player.gold) return false;
+  state.player.gold -= amount;
+  state.ledger.push({ ts: now.getTime(), date: dateStr(now), type: 'cashout', amount: -amount, note: `提现 ${amount}金 = ¥${amount / state.config.goldToYuanRate}` });
+  return true;
+}
