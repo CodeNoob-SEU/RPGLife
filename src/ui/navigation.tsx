@@ -5,10 +5,10 @@ import { colors } from './theme';
 import { TopStatusBar } from './components/TopStatusBar';
 import { QuestsScreen } from './screens/QuestsScreen';
 import { TrialsScreen } from './screens/TrialsScreen';
+import { BossScreen } from './screens/BossScreen';
 import { Placeholder } from './screens/Placeholder';
 
 const Tab = createBottomTabNavigator();
-const Boss = () => <Placeholder title="讨伐 Boss" />;
 const Shop = () => <Placeholder title="商店" />;
 const Settings = () => <Placeholder title="设置" />;
 
@@ -31,7 +31,7 @@ export function RootNavigation() {
         >
           <Tab.Screen name="委托" component={QuestsScreen} />
           <Tab.Screen name="试炼" component={TrialsScreen} />
-          <Tab.Screen name="讨伐" component={Boss} />
+          <Tab.Screen name="讨伐" component={BossScreen} />
           <Tab.Screen name="商店" component={Shop} />
           <Tab.Screen name="设置" component={Settings} />
         </Tab.Navigator>
