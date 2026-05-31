@@ -4,8 +4,10 @@ import { colors, space } from '../theme';
 import { PixelPanel, PixelButton } from '../components/Pixel';
 
 export function QuestsScreen() {
-  const dailies = useGameStore((s) => s.dailies.filter((d) => !d.archived));
-  const weeklies = useGameStore((s) => s.weeklies.filter((w) => !w.archived));
+  // Select the stable array refs, then filter in render. Filtering INSIDE the selector
+  // returns a new array every render → zustand (Object.is) loops forever (React #185).
+  const dailies = useGameStore((s) => s.dailies).filter((d) => !d.archived);
+  const weeklies = useGameStore((s) => s.weeklies).filter((w) => !w.archived);
   const todayReceipts = useGameStore((s) => s.todayReceipts);
   const actions = useGameStore((s) => s.actions);
 
