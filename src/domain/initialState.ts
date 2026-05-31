@@ -11,6 +11,7 @@ export const defaultConfig: Config = {
   longAbsenceThreshold: 7, levelExpBase: 50, levelExpStep: 50,
   reduceMotion: false, soundEnabled: true, hapticsEnabled: true,
   dailyChestMin: 10, dailyChestMax: 60,
+  reminderEnabled: false, reminderHour: 20,
 };
 
 const defaultMilestones: Milestone[] = [

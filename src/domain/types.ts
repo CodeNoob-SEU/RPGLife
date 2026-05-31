@@ -36,6 +36,8 @@ export interface Config {
   reduceMotion: boolean; soundEnabled: boolean; hapticsEnabled: boolean;
   // 每日宝箱奖励区间（v5+）。
   dailyChestMin: number; dailyChestMax: number;
+  // 本地每日提醒（v8+）：开关 + 提醒小时(0-23)。
+  reminderEnabled: boolean; reminderHour: number;
 }
 export interface BossHit { bossId: string; damage: number; clearedStages: number[]; defeated: boolean; }
 export interface Receipt {

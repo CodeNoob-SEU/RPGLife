@@ -4,6 +4,7 @@
  * initialState / migrate / store persist 三处共用此常量，旧存档加载时会重跑 migrate 补默认。
  *
  * 版本链：v1 基线 → v2 配置偏好(reduceMotion/sound/haptics) → v3 一次性委托(oneoffs) → v4 成就(achievements)
- *  → v5 每日宝箱(dailyChest + config 区间) → v6 首启引导(onboarded) → v7 昨日战报(reportSeenDate)。
+ *  → v5 每日宝箱(dailyChest + config 区间) → v6 首启引导(onboarded) → v7 昨日战报(reportSeenDate)
+ *  → v8 本地提醒(config reminderEnabled/reminderHour)。
  */
-export const CURRENT_VERSION = 7;
+export const CURRENT_VERSION = 8;

@@ -5,6 +5,7 @@ import { useGameStore } from './src/store/useGameStore';
 import { useAppFonts } from './src/ui/fonts';
 import { RootNavigation } from './src/ui/navigation';
 import { Onboarding } from './src/ui/components/Onboarding';
+import { syncReminder } from './src/ui/notifications';
 import { colors } from './src/ui/theme';
 
 export default function App() {
@@ -19,7 +20,11 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (hydrated) useGameStore.getState().actions.rollover();
+    if (hydrated) {
+      useGameStore.getState().actions.rollover();
+      const c = useGameStore.getState().config;
+      if (c.reminderEnabled) syncReminder(true, c.reminderHour); // 重新安排（跨更新/重装存活）；web no-op
+    }
   }, [hydrated]);
 
   const fontsReady = fontsLoaded || !!fontsError; // 字体出错也放行（退回系统字体），不卡死

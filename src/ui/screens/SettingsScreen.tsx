@@ -5,6 +5,7 @@ import { Config } from '../../domain/types';
 import { CURRENT_VERSION } from '../../domain/version';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, PixelTextInput, ConfirmDialog, SectionTitle, PixelToggle } from '../components/Pixel';
+import { syncReminder } from '../notifications';
 
 const FIELDS: Array<{ key: keyof Config; label: string }> = [
   { key: 'goldToYuanRate', label: '金币兑换率（X 金 = ¥1）' },
@@ -32,6 +33,7 @@ export function SettingsScreen() {
   const [importText, setImportText] = useState('');
   const [importMsg, setImportMsg] = useState('');
   const [resetting, setResetting] = useState(false);
+  const [reminderHour, setReminderHour] = useState(String(config.reminderHour));
 
   // 关键字段下限：兑换率/升级基数 ≥1（防除零/Infinity），其余经济数值 ≥0。
   const MIN_ONE = new Set(['goldToYuanRate', 'levelExpBase']);
@@ -87,6 +89,19 @@ export function SettingsScreen() {
           <PixelToggle label="减弱动效（关闭抖动 / 纸屑 / 浮动；照顾低端机与无障碍）" value={config.reduceMotion} onValueChange={(v) => actions.setConfig({ reduceMotion: v })} />
           <PixelToggle label="音效" value={config.soundEnabled} onValueChange={(v) => actions.setConfig({ soundEnabled: v })} />
           <PixelToggle label="触感反馈（震动）" value={config.hapticsEnabled} onValueChange={(v) => actions.setConfig({ hapticsEnabled: v })} />
+        </View>
+      </PixelPanel>
+
+      <SectionTitle>每日提醒</SectionTitle>
+      <PixelPanel>
+        <View style={{ gap: space(2) }}>
+          <PixelToggle label="开启每日提醒（像素角色口吻，鼓励不催促）" value={config.reminderEnabled} onValueChange={(v) => { actions.setConfig({ reminderEnabled: v }); syncReminder(v, config.reminderHour); }} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
+            <PixelText style={{ color: colors.ink, flex: 1, fontSize: 12 }}>提醒时间（小时 0–23）</PixelText>
+            <View style={{ width: space(20) }}><PixelTextInput value={reminderHour} onChangeText={setReminderHour} numeric /></View>
+          </View>
+          <PixelButton label="保存提醒时间" color={colors.bgPanel} onPress={() => { const h = Math.max(0, Math.min(23, Math.floor(Number(reminderHour) || 20))); setReminderHour(String(h)); actions.setConfig({ reminderHour: h }); if (config.reminderEnabled) syncReminder(true, h); }} />
+          <PixelText style={{ color: colors.textDim, fontSize: 11 }}>每天 {config.reminderHour}:00 提醒你回来冒险。需系统通知权限；网页端不生效，真机有效。</PixelText>
         </View>
       </PixelPanel>
 

@@ -10,6 +10,7 @@ export const testConfig: Config = {
   longAbsenceThreshold: 7, levelExpBase: 50, levelExpStep: 50,
   reduceMotion: false, soundEnabled: true, hapticsEnabled: true,
   dailyChestMin: 10, dailyChestMax: 60,
+  reminderEnabled: false, reminderHour: 20,
 };
 
 /** 构造一个干净的空 state（无任务），供单测自由填充。 */
