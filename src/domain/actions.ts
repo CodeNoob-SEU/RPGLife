@@ -1,5 +1,5 @@
 import { AppState, Receipt, Trial } from './types';
-import { dateStr, weekKey } from './dateUtils';
+import { dateStr, weekKey, weekKeyStr } from './dateUtils';
 import { addGold, applyExpDelta, pushCelebration } from './economy';
 import { computeStreak } from './trials';
 
@@ -127,7 +127,7 @@ export function undoCheckIn(state: AppState, rid: string, now: Date): void {
   const idx = state.todayReceipts.findIndex((x) => x.rid === rid);
   if (idx === -1) return;
   const r = state.todayReceipts[idx];
-  const today = dateStr(now);
+  const ts = now.getTime();
 
   // 1) 结构回退
   if (r.kind === 'daily') {
@@ -146,7 +146,7 @@ export function undoCheckIn(state: AppState, rid: string, now: Date): void {
         const gid = r.graduation.addedDailyId;
         state.dailies = state.dailies.filter((x) => x.id !== gid);
       }
-      t.streak = computeStreak(t, today);
+      t.streak = computeStreak(t, r.date);
     }
   }
 
@@ -162,21 +162,21 @@ export function undoCheckIn(state: AppState, rid: string, now: Date): void {
   // 3) 金币/经验完整回退
   state.player.gold = Math.max(0, state.player.gold - r.goldDelta);
   applyExpDelta(state, -r.expDelta);
-  state.ledger.push({ ts: now.getTime(), date: today, type: 'undo', amount: -r.goldDelta, expAmount: -r.expDelta, note: `撤销: ${r.taskId}` });
+  state.ledger.push({ ts, date: r.date, type: 'undo', amount: -r.goldDelta, expAmount: -r.expDelta, note: `撤销: ${r.taskId}` });
 
-  // 4) 全清奖励重判
-  if (r.kind === 'daily' && state.dailyPerfect?.date === today && !allDailiesDone(state, today)) {
+  // 4) 全清奖励重判（按回执自身日期 r.date，使撤销在缺少 rollover 时也自洽）
+  if (r.kind === 'daily' && state.dailyPerfect?.date === r.date && !allDailiesDone(state, r.date)) {
     state.player.gold = Math.max(0, state.player.gold - state.dailyPerfect.gold);
     applyExpDelta(state, -state.dailyPerfect.exp);
-    state.ledger.push({ ts: now.getTime(), date: today, type: 'undo', amount: -state.dailyPerfect.gold, expAmount: -state.dailyPerfect.exp, note: '撤销每日全清' });
+    state.ledger.push({ ts, date: r.date, type: 'undo', amount: -state.dailyPerfect.gold, expAmount: -state.dailyPerfect.exp, note: '撤销每日全清' });
     state.dailyPerfect = null;
   }
   if (r.kind === 'weekly') {
-    const week = weekKey(now);
+    const week = weekKeyStr(r.date);
     if (state.weeklyPerfect?.week === week && !allWeekliesDone(state, week)) {
       state.player.gold = Math.max(0, state.player.gold - state.weeklyPerfect.gold);
       applyExpDelta(state, -state.weeklyPerfect.exp);
-      state.ledger.push({ ts: now.getTime(), date: today, type: 'undo', amount: -state.weeklyPerfect.gold, expAmount: -state.weeklyPerfect.exp, note: '撤销每周全清' });
+      state.ledger.push({ ts, date: r.date, type: 'undo', amount: -state.weeklyPerfect.gold, expAmount: -state.weeklyPerfect.exp, note: '撤销每周全清' });
       state.weeklyPerfect = null;
     }
   }

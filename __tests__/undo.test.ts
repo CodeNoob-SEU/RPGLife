@@ -81,3 +81,39 @@ test('undo no-op for unknown rid', () => {
   undoCheckIn(s, 'nope', now);
   expect(s.player.gold).toBe(0);
 });
+
+test('undo weekly that breaks perfect week reverses the perfect-week bonus', () => {
+  const s = makeState();
+  const wk = (id: string, g: number): Weekly => ({ id, name: id, gold: g, exp: 0, icon: '', doneWeek: null, archived: false });
+  s.weeklies = [wk('a', 100), wk('b', 100)];
+  checkInWeekly(s, 'a', now);
+  checkInWeekly(s, 'b', now); // perfect week: +200
+  expect(s.player.gold).toBe(400); // 100 + 100 + 200
+  undoCheckIn(s, 'weekly:b:2026-06-01', now);
+  expect(s.player.gold).toBe(100); // 400 - 100(b) - 200(perfect week)
+  expect(s.weeklyPerfect).toBeNull();
+});
+
+test('undo reverses a multi-level exp gain exactly', () => {
+  const s = makeState();
+  s.dailies = [day('big', 0, 200), day('keep', 0, 0)]; // 200 exp -> L3 exp50; keep stays incomplete so no perfect bonus
+  checkInDaily(s, 'big', now);
+  expect(s.player.level).toBe(3);
+  expect(s.player.exp).toBe(50);
+  expect(s.player.expTotal).toBe(200);
+  undoCheckIn(s, 'daily:big:2026-06-01', now);
+  expect(s.player.level).toBe(1);
+  expect(s.player.exp).toBe(0);
+  expect(s.player.expTotal).toBe(0);
+});
+
+test('undo un-clears only this receipt\'s boss stages, preserving an earlier-cleared stage', () => {
+  const s = makeState();
+  s.dailies = [day('a', 0, 0), day('keep', 0, 0)];
+  s.bosses = [{ id: 'b1', name: 'B', icon: '', maxHp: 100, hp: 60, damagePerHit: 30, totalRewardGold: 600, totalRewardExp: 300, weights: [0.2, 0.3, 0.5], linkedTaskIds: ['a'], clearedStages: [1], defeated: false } as Boss];
+  checkInDaily(s, 'a', now); // hp 30 <= 33.33 -> stage 2 cleared this hit
+  expect(s.bosses[0].clearedStages).toEqual([1, 2]);
+  undoCheckIn(s, 'daily:a:2026-06-01', now);
+  expect(s.bosses[0].hp).toBe(60);
+  expect(s.bosses[0].clearedStages).toEqual([1]); // pre-existing stage 1 preserved; only this hit's stage 2 removed
+});
