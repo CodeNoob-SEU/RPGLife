@@ -42,3 +42,6 @@ yarn-error.*
 
 # local npm cache override
 .npmrc
+
+# local preview config
+.claude/launch.json
