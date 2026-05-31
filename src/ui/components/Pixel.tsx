@@ -1,5 +1,8 @@
+import { useEffect } from 'react';
 import { Modal, Pressable, Text, TextInput, TextProps, View, ViewStyle, StyleProp } from 'react-native';
+import Animated, { useSharedValue, useAnimatedStyle, withTiming, withSequence, Easing } from 'react-native-reanimated';
 import { colors, pixelBorder, pixelShadow, space, font } from '../theme';
+import { useGameStore } from '../../store/useGameStore';
 
 export function PixelPanel({ children, style }: { children: React.ReactNode; style?: StyleProp<ViewStyle> }) {
   return (
@@ -20,11 +23,32 @@ export function PixelButton({ label, onPress, color = colors.accent, disabled }:
   );
 }
 
-export function PixelProgressBar({ value, max, color = colors.exp }: { value: number; max: number; color?: string }) {
+/**
+ * 像素进度条。宽度变化用 reanimated 动画填充：上升时轻微 overshoot 回弹，下降时平滑收缩。
+ * 受 config.reduceMotion 控制（开启则瞬时无动画）。height 可定制（HP 条更高）。
+ */
+export function PixelProgressBar({ value, max, color = colors.exp, height = space(4) }: { value: number; max: number; color?: string; height?: number }) {
+  const reduceMotion = useGameStore((s) => s.config.reduceMotion);
   const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
+  const w = useSharedValue(pct);
+  const prev = useSharedValue(pct);
+  useEffect(() => {
+    if (reduceMotion) { w.value = pct; prev.value = pct; return; }
+    if (pct > prev.value) {
+      const over = Math.min(100, pct + 3);
+      w.value = withSequence(
+        withTiming(over, { duration: 240, easing: Easing.out(Easing.quad) }),
+        withTiming(pct, { duration: 180, easing: Easing.inOut(Easing.quad) })
+      );
+    } else {
+      w.value = withTiming(pct, { duration: 260, easing: Easing.out(Easing.quad) });
+    }
+    prev.value = pct;
+  }, [pct, reduceMotion]);
+  const aStyle = useAnimatedStyle(() => ({ width: `${w.value}%` }));
   return (
-    <View style={[{ height: space(4), backgroundColor: colors.bgDeep }, pixelBorder]}>
-      <View style={{ width: `${pct}%`, height: '100%', backgroundColor: color }} />
+    <View style={[{ height, backgroundColor: colors.bgDeep, overflow: 'hidden' }, pixelBorder]}>
+      <Animated.View style={[{ height: '100%', backgroundColor: color }, aStyle]} />
     </View>
   );
 }

@@ -34,7 +34,7 @@ export function TrialsScreen() {
     const after = useGameStore.getState().player;
     const dg = after.gold - before.gold;
     const de = after.expTotal - before.expTotal;
-    if (dg !== 0 || de !== 0) fire(`🪙+${dg} ✨+${de}`);
+    if (dg !== 0 || de !== 0) fire(dg, de);
   };
 
   return (
