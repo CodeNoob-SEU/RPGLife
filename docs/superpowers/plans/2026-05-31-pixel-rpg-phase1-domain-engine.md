@@ -973,7 +973,7 @@ test('checkInDaily marks done, adds gold/exp, pushes receipt', () => {
 
 test('checkInDaily is idempotent same day', () => {
   const s = makeState();
-  s.dailies = [day('a', 30, 0)];
+  s.dailies = [day('a', 30, 0), day('b', 10, 0)]; // 2 dailies: re-checking 'a' must not double-credit nor complete the set
   checkInDaily(s, 'a', now);
   checkInDaily(s, 'a', now);
   expect(s.player.gold).toBe(30);
