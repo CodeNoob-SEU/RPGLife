@@ -9,6 +9,7 @@ export const testConfig: Config = {
   freezeCardCost: 100, cashOutThreshold: 1000, restDaysPerWeek: 1,
   longAbsenceThreshold: 7, levelExpBase: 50, levelExpStep: 50,
   reduceMotion: false, soundEnabled: true, hapticsEnabled: true,
+  dailyChestMin: 10, dailyChestMax: 60,
 };
 
 /** 构造一个干净的空 state（无任务），供单测自由填充。 */
@@ -19,6 +20,7 @@ export function makeState(over: Partial<AppState> = {}): AppState {
     dailies: [], weeklies: [], trials: [], bosses: [], oneoffs: [],
     inventory: { freezeCards: 0 },
     achievements: { unlockedAt: {} },
+    dailyChest: null,
     restDays: { weekKey: '', remaining: 0 },
     config: { ...testConfig },
     ledger: [], history: {},

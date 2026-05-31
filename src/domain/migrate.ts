@@ -17,6 +17,7 @@ export function migrate(persisted: unknown, _fromVersion: number): AppState {
     player: { ...fresh.player, ...(p.player ?? {}) },
     inventory: { ...fresh.inventory, ...(p.inventory ?? {}) },
     achievements: { unlockedAt: p.achievements?.unlockedAt ?? {} },
+    dailyChest: p.dailyChest ?? null,
     restDays: { ...fresh.restDays, ...(p.restDays ?? {}) },
     config: { ...fresh.config, ...(p.config ?? {}) },
     dailies: p.dailies ?? fresh.dailies,

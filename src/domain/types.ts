@@ -34,6 +34,8 @@ export interface Config {
   longAbsenceThreshold: number; levelExpBase: number; levelExpStep: number;
   // UI / 偏好（v2+）：动效削弱（无障碍）、音效、触感开关。
   reduceMotion: boolean; soundEnabled: boolean; hapticsEnabled: boolean;
+  // 每日宝箱奖励区间（v5+）。
+  dailyChestMin: number; dailyChestMax: number;
 }
 export interface BossHit { bossId: string; damage: number; clearedStages: number[]; defeated: boolean; }
 export interface Receipt {
@@ -48,6 +50,7 @@ export interface AppState {
   dailies: Daily[]; weeklies: Weekly[]; trials: Trial[]; bosses: Boss[]; oneoffs: OneOff[];
   inventory: { freezeCards: number };
   achievements: { unlockedAt: Record<string, DateStr> }; // 成就 id → 解锁日期
+  dailyChest: { date: DateStr } | null; // 最近一次开启每日宝箱的日期（防重复）
   restDays: { weekKey: WeekKey; remaining: number };
   config: Config;
   ledger: LedgerEntry[];

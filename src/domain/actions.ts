@@ -230,3 +230,15 @@ export function cashOut(state: AppState, amount: number, now: Date): boolean {
   state.ledger.push({ ts: now.getTime(), date: dateStr(now), type: 'cashout', amount: -amount, note: `提现 ${amount}金 = ¥${amount / state.config.goldToYuanRate}` });
   return true;
 }
+
+/** 开启每日宝箱：随机金币（[min,max]，rand∈[0,1) 由调用方注入便于测试），同日仅一次。返回奖励额（0=今日已开）。 */
+export function openDailyChest(state: AppState, now: Date, rand: number): number {
+  const today = dateStr(now);
+  if (state.dailyChest?.date === today) return 0;
+  const min = state.config.dailyChestMin ?? 10; // 兜底：旧/残缺存档缺该配置时不致 NaN
+  const max = state.config.dailyChestMax ?? 60;
+  const reward = min + Math.floor(rand * (max - min + 1));
+  addGold(state, reward, 'bonus', '每日宝箱', now);
+  state.dailyChest = { date: today };
+  return reward;
+}

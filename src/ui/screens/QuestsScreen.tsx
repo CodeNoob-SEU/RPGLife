@@ -16,10 +16,12 @@ export function QuestsScreen() {
   const weeklies = useGameStore((s) => s.weeklies).filter((w) => !w.archived);
   const oneoffs = useGameStore((s) => s.oneoffs).filter((o) => !o.archived);
   const todayReceipts = useGameStore((s) => s.todayReceipts);
+  const dailyChest = useGameStore((s) => s.dailyChest);
   const actions = useGameStore((s) => s.actions);
   const { floatNode, fire } = useGainFloat();
 
   const today = dateStr(new Date());
+  const chestReady = dailyChest?.date !== today;
   const doneCount = dailies.filter((d) => d.doneDate === today).length;
   const activeOneoffs = oneoffs.filter((o) => o.doneDate === null);
   const doneOneoffs = oneoffs.filter((o) => o.doneDate !== null);
@@ -31,6 +33,13 @@ export function QuestsScreen() {
 
   const ridFor = (kind: string, id: string) => todayReceipts.find((r) => r.kind === kind && r.taskId === id)?.rid;
   const onUndo = (rid: string) => { haptics.medium(); actions.undo(rid); };
+  const openChest = () => {
+    haptics.success();
+    const before = useGameStore.getState().player.gold;
+    actions.openDailyChest();
+    const dg = useGameStore.getState().player.gold - before;
+    if (dg > 0) fire(dg, 0);
+  };
 
   const checkIn = (kind: QuestKind, id: string) => {
     haptics.light();
@@ -92,6 +101,14 @@ export function QuestsScreen() {
         <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
           <PixelButton label={manage ? '✓ 完成管理' : '✎ 管理'} color={manage ? colors.success : colors.bgPanel} onPress={() => setManage((m) => !m)} />
         </View>
+
+        <PixelPanel style={chestReady ? { borderColor: colors.gold } : { opacity: 0.7 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
+            <PixelText style={{ fontSize: 24 }}>{chestReady ? '🎁' : '📦'}</PixelText>
+            <PixelText style={{ color: colors.ink, flex: 1 }}>{chestReady ? '每日宝箱已就绪！' : '今日宝箱已开启 · 明日再来'}</PixelText>
+            {chestReady ? <PixelButton label="开启" color={colors.gold} onPress={openChest} /> : null}
+          </View>
+        </PixelPanel>
 
         {renderHeader('每日委托', 'daily')}
         {dailies.length === 0 ? (

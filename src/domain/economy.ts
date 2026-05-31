@@ -18,6 +18,7 @@ export function pushCelebration(state: AppState, c: CelebrationKind): void {
 
 /** 经验增减；delta 可为负（撤销用）。正向连环升级，负向连环降级，floor 于 L1/0。 */
 export function applyExpDelta(state: AppState, delta: number): void {
+  if (!Number.isFinite(delta)) return; // 防御：非有限值不得污染等级/经验
   const p = state.player;
   p.expTotal = Math.max(0, p.expTotal + delta);
   let exp = p.exp + delta;
@@ -42,6 +43,7 @@ export function applyExpDelta(state: AppState, delta: number): void {
 
 /** 金币增减（永不为负）+ 记 ledger。 */
 export function addGold(state: AppState, n: number, type: LedgerType, note: string, now: Date): void {
-  state.player.gold = Math.max(0, state.player.gold + n);
-  state.ledger.push({ ts: now.getTime(), date: dateStr(now), type, amount: n, note });
+  const delta = Number.isFinite(n) ? n : 0; // 防御：非有限值不得污染金币（NaN 会持久化并破坏一切）
+  state.player.gold = Math.max(0, state.player.gold + delta);
+  state.ledger.push({ ts: now.getTime(), date: dateStr(now), type, amount: delta, note });
 }

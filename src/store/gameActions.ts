@@ -10,6 +10,7 @@ import {
   attackBoss as domainAttackBoss,
   buyFreezeCard as domainBuyFreezeCard,
   cashOut as domainCashOut,
+  openDailyChest as domainOpenDailyChest,
 } from '../domain/actions';
 import { createInitialState } from '../domain/initialState';
 import { migrate } from '../domain/migrate';
@@ -30,6 +31,7 @@ export interface GameActions {
   undo: (rid: string, now?: Date) => void;
   buyFreezeCard: (now?: Date) => void;
   cashOut: (amount: number, now?: Date) => void;
+  openDailyChest: (now?: Date) => void;
   addDaily: (name: string, gold: number, exp: number, icon?: string) => void;
   editDaily: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string }>) => void;
   archiveDaily: (id: string) => void;
@@ -67,6 +69,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   undo: (rid, now = new Date()) => set((s) => { undoCheckIn(s, rid, now); }),
   buyFreezeCard: (now = new Date()) => set((s) => { domainBuyFreezeCard(s, now); }),
   cashOut: (amount, now = new Date()) => set((s) => { domainCashOut(s, amount, now); evaluateAchievements(s, now); }),
+  openDailyChest: (now = new Date()) => set((s) => { domainOpenDailyChest(s, now, Math.random()); evaluateAchievements(s, now); }),
 
   addDaily: (name, gold, exp, icon = '📝') => set((s) => {
     s.dailies.push({ id: genId('daily'), name, gold, exp, icon, doneDate: null, archived: false });

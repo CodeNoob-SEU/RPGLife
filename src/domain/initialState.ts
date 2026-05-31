@@ -10,6 +10,7 @@ export const defaultConfig: Config = {
   freezeCardCost: 100, cashOutThreshold: 1000, restDaysPerWeek: 1,
   longAbsenceThreshold: 7, levelExpBase: 50, levelExpStep: 50,
   reduceMotion: false, soundEnabled: true, hapticsEnabled: true,
+  dailyChestMin: 10, dailyChestMax: 60,
 };
 
 const defaultMilestones: Milestone[] = [
@@ -45,6 +46,7 @@ export function createInitialState(now: Date): AppState {
     ],
     inventory: { freezeCards: 1 },
     achievements: { unlockedAt: {} },
+    dailyChest: null,
     restDays: { weekKey: weekKey(now), remaining: defaultConfig.restDaysPerWeek },
     config: { ...defaultConfig },
     ledger: [], history: {},
