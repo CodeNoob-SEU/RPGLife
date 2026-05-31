@@ -92,7 +92,7 @@ test('editBoss patches fields and clamps hp to maxHp', () => {
   const b = s.getState().bosses.find((x) => x.id === id)!;
   expect(b.name).toBe('读完两本书');
   expect(b.maxHp).toBe(50);
-  expect(b.hp).toBeLessThanOrEqual(50); // 原 hp=200 被夹到 <=50
+  expect(b.hp).toBe(50); // 原 hp=200 被精确夹到 50
 });
 
 test('addBoss appends with given weights and full hp', () => {

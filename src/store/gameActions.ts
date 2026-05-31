@@ -84,6 +84,9 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
     if (!b) return;
     Object.assign(b, patch);
     if (patch.maxHp !== undefined) b.hp = Math.min(b.hp, b.maxHp);
+    // 注：改 maxHp 不回溯调整 clearedStages（旧刻度下已结算的阶段保留）。
+    // 经济安全（applyBossDamageForTask 的 !clearedStages.includes(i) 防重复发奖），
+    // 但进行中的 Boss 进度条可能与新刻度阈值略不一致。MVP 可接受。
   }),
   archiveBoss: (id) => set((s) => { const b = s.bosses.find((x) => x.id === id); if (b) b.archived = true; }),
 
