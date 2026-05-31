@@ -6,7 +6,7 @@ const boss = (over: Partial<Boss> = {}): Boss => ({
   id: 'b1', name: '读完一本书', icon: '👹',
   maxHp: 100, hp: 100, damagePerHit: 20,
   totalRewardGold: 600, totalRewardExp: 300,
-  weights: [0.2, 0.3, 0.5], linkedTaskIds: ['a'], clearedStages: [], defeated: false,
+  weights: [0.2, 0.3, 0.5], linkedTaskIds: ['a'], clearedStages: [], defeated: false, archived: false,
   ...over,
 });
 const day = (id: string): Daily => ({ id, name: id, gold: 0, exp: 0, icon: '', doneDate: null, archived: false });

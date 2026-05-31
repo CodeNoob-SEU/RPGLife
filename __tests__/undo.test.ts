@@ -30,7 +30,7 @@ test('undo that breaks a perfect day reverses the perfect bonus', () => {
 
 test('undo trial removes completedDate, un-claims milestone, recomputes streak', () => {
   const s = makeState();
-  s.trials = [{ id: 't1', name: 't', icon: '', startDate: '2026-06-01', completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [], graduated: false, milestones: [{ day: 1, gold: 20, exp: 10 }] } as Trial];
+  s.trials = [{ id: 't1', name: 't', icon: '', startDate: '2026-06-01', completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [], graduated: false, archived: false, milestones: [{ day: 1, gold: 20, exp: 10 }] } as Trial];
   checkInTrial(s, 't1', now); // streak 1, claim D1, +20
   undoCheckIn(s, 'trial:t1:2026-06-01', now);
   expect(s.trials[0].completedDates).toEqual([]);
@@ -43,7 +43,7 @@ test('undo a graduation: reverts graduated flag and removes added daily', () => 
   const s = makeState();
   const completed: string[] = [];
   for (let d = 1; d <= 13; d++) completed.push(`2026-06-${String(d).padStart(2, '0')}`);
-  s.trials = [{ id: 't1', name: 't', icon: '', startDate: '2026-06-01', completedDates: completed, protectedDates: [], streak: 13, claimedMilestones: [1, 3, 7], graduated: false, milestones: [{ day: 1, gold: 20, exp: 10 }, { day: 3, gold: 50, exp: 30 }, { day: 7, gold: 150, exp: 80 }, { day: 14, gold: 500, exp: 300 }] } as Trial];
+  s.trials = [{ id: 't1', name: 't', icon: '', startDate: '2026-06-01', completedDates: completed, protectedDates: [], streak: 13, claimedMilestones: [1, 3, 7], graduated: false, archived: false, milestones: [{ day: 1, gold: 20, exp: 10 }, { day: 3, gold: 50, exp: 30 }, { day: 7, gold: 150, exp: 80 }, { day: 14, gold: 500, exp: 300 }] } as Trial];
   checkInTrial(s, 't1', new Date(2026, 5, 14));
   expect(s.trials[0].graduated).toBe(true);
   undoCheckIn(s, 'trial:t1:2026-06-14', new Date(2026, 5, 14));
@@ -56,7 +56,7 @@ test('undo a graduation: reverts graduated flag and removes added daily', () => 
 test('undo a boss hit heals hp, un-clears stages, reverts defeat and reward', () => {
   const s = makeState();
   s.dailies = [day('a', 0, 0)];
-  s.bosses = [{ id: 'b1', name: 'B', icon: '', maxHp: 100, hp: 40, damagePerHit: 40, totalRewardGold: 600, totalRewardExp: 300, weights: [0.2, 0.3, 0.5], linkedTaskIds: ['a'], clearedStages: [], defeated: false } as Boss];
+  s.bosses = [{ id: 'b1', name: 'B', icon: '', maxHp: 100, hp: 40, damagePerHit: 40, totalRewardGold: 600, totalRewardExp: 300, weights: [0.2, 0.3, 0.5], linkedTaskIds: ['a'], clearedStages: [], defeated: false, archived: false } as Boss];
   checkInDaily(s, 'a', now); // hp 0, stages 1/2/3, defeated, +600 gold
   undoCheckIn(s, 'daily:a:2026-06-01', now);
   expect(s.bosses[0].hp).toBe(40);
@@ -110,7 +110,7 @@ test('undo reverses a multi-level exp gain exactly', () => {
 test('undo un-clears only this receipt\'s boss stages, preserving an earlier-cleared stage', () => {
   const s = makeState();
   s.dailies = [day('a', 0, 0), day('keep', 0, 0)];
-  s.bosses = [{ id: 'b1', name: 'B', icon: '', maxHp: 100, hp: 60, damagePerHit: 30, totalRewardGold: 600, totalRewardExp: 300, weights: [0.2, 0.3, 0.5], linkedTaskIds: ['a'], clearedStages: [1], defeated: false } as Boss];
+  s.bosses = [{ id: 'b1', name: 'B', icon: '', maxHp: 100, hp: 60, damagePerHit: 30, totalRewardGold: 600, totalRewardExp: 300, weights: [0.2, 0.3, 0.5], linkedTaskIds: ['a'], clearedStages: [1], defeated: false, archived: false } as Boss];
   checkInDaily(s, 'a', now); // hp 30 <= 33.33 -> stage 2 cleared this hit
   expect(s.bosses[0].clearedStages).toEqual([1, 2]);
   undoCheckIn(s, 'daily:a:2026-06-01', now);

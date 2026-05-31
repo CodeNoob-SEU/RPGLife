@@ -68,12 +68,12 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   archiveWeekly: (id) => set((s) => { const w = s.weeklies.find((x) => x.id === id); if (w) w.archived = true; }),
 
   addTrial: (name, icon = '🎯', now = new Date()) => set((s) => {
-    s.trials.push({ id: genId('trial'), name, icon, startDate: dateStr(now), completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [], graduated: false, milestones: MILESTONES.map((m) => ({ ...m })) });
+    s.trials.push({ id: genId('trial'), name, icon, startDate: dateStr(now), completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [], graduated: false, archived: false, milestones: MILESTONES.map((m) => ({ ...m })) });
   }),
   archiveTrial: (id) => set((s) => { s.trials = s.trials.filter((t) => t.id !== id); }),
 
   addBoss: (b) => set((s) => {
-    s.bosses.push({ id: genId('boss'), name: b.name, icon: b.icon ?? '👹', maxHp: b.maxHp, hp: b.maxHp, damagePerHit: b.damagePerHit, totalRewardGold: b.totalRewardGold, totalRewardExp: b.totalRewardExp, weights: [0.2, 0.3, 0.5], linkedTaskIds: b.linkedTaskIds, clearedStages: [], defeated: false });
+    s.bosses.push({ id: genId('boss'), name: b.name, icon: b.icon ?? '👹', maxHp: b.maxHp, hp: b.maxHp, damagePerHit: b.damagePerHit, totalRewardGold: b.totalRewardGold, totalRewardExp: b.totalRewardExp, weights: [0.2, 0.3, 0.5], linkedTaskIds: b.linkedTaskIds, clearedStages: [], defeated: false, archived: false });
   }),
 
   setConfig: (patch) => set((s) => { Object.assign(s.config, patch); }),

@@ -30,7 +30,7 @@ function allWeekliesDone(state: AppState, week: string): boolean {
 /** 完成关联任务对 Boss 造成伤害；跨阶段阈值发该段奖励；记入 receipt 以便撤销。 */
 export function applyBossDamageForTask(state: AppState, r: Receipt, taskId: string, now: Date): void {
   for (const b of state.bosses) {
-    if (b.defeated || !b.linkedTaskIds.includes(taskId)) continue;
+    if (b.defeated || b.archived || !b.linkedTaskIds.includes(taskId)) continue;
     const dmg = b.damagePerHit;
     b.hp = Math.max(0, b.hp - dmg);
     const cleared: number[] = [];

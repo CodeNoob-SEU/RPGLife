@@ -22,6 +22,7 @@ export function computeStreak(t: Trial, asOf: DateStr): number {
 export function settleTrials(state: AppState, D: DateStr): void {
   for (const t of state.trials) {
     if (t.graduated) continue;
+    if (t.archived) continue;
     if (D < t.startDate) continue;
     if (t.completedDates.includes(D)) continue;
     const wk = weekKeyStr(D);

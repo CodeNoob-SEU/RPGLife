@@ -5,7 +5,7 @@ import { computeStreak, settleTrials } from '../src/domain/trials';
 const trial = (over: Partial<Trial> = {}): Trial => ({
   id: 't1', name: '背单词', icon: '', startDate: '2026-06-01',
   completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [],
-  graduated: false,
+  graduated: false, archived: false,
   milestones: [{ day: 1, gold: 20, exp: 10 }, { day: 3, gold: 50, exp: 30 }, { day: 7, gold: 150, exp: 80 }, { day: 14, gold: 500, exp: 300 }],
   ...over,
 });

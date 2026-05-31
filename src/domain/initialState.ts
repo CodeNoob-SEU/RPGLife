@@ -32,10 +32,10 @@ export function createInitialState(now: Date): AppState {
       { id: 'w-call', name: '给家人打电话', gold: 60, exp: 30, icon: '📞', doneWeek: null, archived: false },
     ],
     trials: [
-      { id: 't-words', name: '每天背 10 个单词', icon: '🔤', startDate: dateStr(now), completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [], graduated: false, milestones: [...defaultMilestones] },
+      { id: 't-words', name: '每天背 10 个单词', icon: '🔤', startDate: dateStr(now), completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [], graduated: false, archived: false, milestones: [...defaultMilestones] },
     ],
     bosses: [
-      { id: 'b-book', name: '读完一本书', icon: '👹', maxHp: 200, hp: 200, damagePerHit: 20, totalRewardGold: 600, totalRewardExp: 300, weights: [0.2, 0.3, 0.5], linkedTaskIds: [readingId], clearedStages: [], defeated: false },
+      { id: 'b-book', name: '读完一本书', icon: '👹', maxHp: 200, hp: 200, damagePerHit: 20, totalRewardGold: 600, totalRewardExp: 300, weights: [0.2, 0.3, 0.5], linkedTaskIds: [readingId], clearedStages: [], defeated: false, archived: false },
     ],
     inventory: { freezeCards: 1 },
     restDays: { weekKey: weekKey(now), remaining: defaultConfig.restDaysPerWeek },

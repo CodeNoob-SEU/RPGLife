@@ -11,6 +11,7 @@ export interface Trial {
   id: string; name: string; icon: string; startDate: DateStr;
   completedDates: DateStr[]; protectedDates: DateStr[];
   streak: number; claimedMilestones: number[]; graduated: boolean; milestones: Milestone[];
+  archived: boolean;
 }
 export interface Boss {
   id: string; name: string; icon: string;
@@ -18,6 +19,7 @@ export interface Boss {
   totalRewardGold: number; totalRewardExp: number;
   weights: [number, number, number];
   linkedTaskIds: string[]; clearedStages: number[]; defeated: boolean;
+  archived: boolean;
 }
 export interface LedgerEntry { ts: number; date: DateStr; type: LedgerType; amount: number; expAmount?: number; note: string; }
 export interface HistoryEntry { status: 'perfect' | 'partial' | 'missed' | 'rest'; dailiesDone: number; dailiesTotal: number; goldNet: number; }

@@ -78,7 +78,7 @@ test('long absence still settles trials (break, no gold) and skips weekly penalt
   s.player.lastActiveDate = '2026-06-01';
   s.restDays = { weekKey: '2026-W23', remaining: 0 };
   s.inventory.freezeCards = 0;
-  s.trials = [{ id: 't', name: 't', icon: '', startDate: '2026-06-01', completedDates: ['2026-06-01'], protectedDates: [], streak: 1, claimedMilestones: [1], graduated: false, milestones: [] }];
+  s.trials = [{ id: 't', name: 't', icon: '', startDate: '2026-06-01', completedDates: ['2026-06-01'], protectedDates: [], streak: 1, claimedMilestones: [1], graduated: false, archived: false, milestones: [] }];
   s.weeklies = [{ id: 'w', name: 'w', gold: 100, exp: 0, icon: '', doneWeek: null, archived: false }];
   processRollover(s, new Date(2026, 5, 12)); // gap 11 > 7, spans Sunday 2026-06-07
   expect(s.player.gold).toBe(100);                 // all gold penalties waived (daily AND weekly)
