@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useGameStore } from '../../store/useGameStore';
 import { Config } from '../../domain/types';
+import { CURRENT_VERSION } from '../../domain/version';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, PixelTextInput, ConfirmDialog, SectionTitle } from '../components/Pixel';
 
@@ -49,8 +50,8 @@ export function SettingsScreen() {
   const doImport = () => {
     try {
       const parsed = JSON.parse(importText);
-      if (typeof parsed !== 'object' || parsed === null || parsed.version !== 1 || !parsed.player || !Array.isArray(parsed.dailies)) {
-        setImportMsg('❌ 格式无效或版本不匹配（需 version=1 且含 player/dailies）。');
+      if (typeof parsed !== 'object' || parsed === null || typeof parsed.version !== 'number' || parsed.version > CURRENT_VERSION || !parsed.player || !Array.isArray(parsed.dailies)) {
+        setImportMsg(`❌ 格式无效或版本过新（需含 player/dailies，version ≤ ${CURRENT_VERSION}）。`);
         return;
       }
       actions.importState(parsed);
@@ -83,7 +84,7 @@ export function SettingsScreen() {
           <PixelButton label="生成导出 JSON" color={colors.bgPanel} onPress={doExport} />
           {exportText ? <PixelTextInput value={exportText} onChangeText={() => {}} multiline /> : null}
           <PixelText style={{ color: colors.ink }}>粘贴 JSON 导入（覆盖当前存档）：</PixelText>
-          <PixelTextInput value={importText} onChangeText={setImportText} placeholder='{"version":1,...}' multiline />
+          <PixelTextInput value={importText} onChangeText={setImportText} placeholder='{"version":2,...}' multiline />
           <PixelButton label="导入" color={colors.accent} disabled={!importText.trim()} onPress={doImport} />
           {importMsg ? <PixelText style={{ color: colors.ink }}>{importMsg}</PixelText> : null}
         </View>

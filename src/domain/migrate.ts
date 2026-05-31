@@ -1,9 +1,11 @@
 import { AppState } from './types';
 import { createInitialState } from './initialState';
+import { CURRENT_VERSION } from './version';
 
 /**
- * Phase 1 只有 version 1。把持久化数据并到一份新初始 state 上：缺失的顶层字段用默认值补齐，
- * 已有字段保留。这样旧/残缺的存档能安全加载，也为 Phase 2 新增字段（更高 version）铺路。
+ * 把持久化数据并到一份新初始 state 上：缺失的顶层字段用默认值补齐，已有字段保留，
+ * 对象字段（player/config/...）做浅合并补默认。忽略 fromVersion——对任意旧版本幂等安全，
+ * 故每次 bump CURRENT_VERSION 后旧存档都会被深填补齐新字段。
  */
 export function migrate(persisted: unknown, _fromVersion: number): AppState {
   const fresh = createInitialState(new Date());
@@ -27,6 +29,6 @@ export function migrate(persisted: unknown, _fromVersion: number): AppState {
     weeklyPerfect: p.weeklyPerfect ?? null,
     pendingCelebrations: p.pendingCelebrations ?? [],
     pendingNotice: p.pendingNotice ?? null,
-    version: 1,
+    version: CURRENT_VERSION,
   };
 }

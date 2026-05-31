@@ -1,5 +1,6 @@
 import { AppState, Config, Milestone } from './types';
 import { dateStr, weekKey } from './dateUtils';
+import { CURRENT_VERSION } from './version';
 
 export const defaultConfig: Config = {
   goldToYuanRate: 100,
@@ -8,6 +9,7 @@ export const defaultConfig: Config = {
   missedDailyPenaltyRate: 0.5, dailyPenaltyCap: 100, weeklyPenaltyRate: 0.5,
   freezeCardCost: 100, cashOutThreshold: 1000, restDaysPerWeek: 1,
   longAbsenceThreshold: 7, levelExpBase: 50, levelExpStep: 50,
+  reduceMotion: false, soundEnabled: true, hapticsEnabled: true,
 };
 
 const defaultMilestones: Milestone[] = [
@@ -18,7 +20,7 @@ const defaultMilestones: Milestone[] = [
 export function createInitialState(now: Date): AppState {
   const readingId = 'd-read';
   return {
-    version: 1,
+    version: CURRENT_VERSION,
     player: { name: '冒险者', level: 1, exp: 0, expTotal: 0, gold: 0, avatarTier: 0, lastActiveDate: null },
     dailies: [
       { id: 'd-water', name: '喝水 8 杯', gold: 10, exp: 5, icon: '💧', doneDate: null, archived: false },

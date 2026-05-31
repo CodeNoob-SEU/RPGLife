@@ -30,6 +30,8 @@ export interface Config {
   missedDailyPenaltyRate: number; dailyPenaltyCap: number; weeklyPenaltyRate: number;
   freezeCardCost: number; cashOutThreshold: number; restDaysPerWeek: number;
   longAbsenceThreshold: number; levelExpBase: number; levelExpStep: number;
+  // UI / 偏好（v2+）：动效削弱（无障碍）、音效、触感开关。
+  reduceMotion: boolean; soundEnabled: boolean; hapticsEnabled: boolean;
 }
 export interface BossHit { bossId: string; damage: number; clearedStages: number[]; defeated: boolean; }
 export interface Receipt {

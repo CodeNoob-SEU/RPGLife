@@ -21,7 +21,7 @@ export function useGainFloat() {
   const aStyle = useAnimatedStyle(() => ({ opacity: opacity.value, transform: [{ translateY: y.value }] }));
 
   const floatNode = text ? (
-    <View pointerEvents="none" style={{ position: 'absolute', top: space(2), left: 0, right: 0, alignItems: 'center', zIndex: 10 }}>
+    <View style={{ position: 'absolute', top: space(2), left: 0, right: 0, alignItems: 'center', zIndex: 10, pointerEvents: 'none' }}>
       <Animated.View style={aStyle}>
         <PixelText style={{ color: colors.gold, fontWeight: 'bold', fontSize: 18 }}>{text}</PixelText>
       </Animated.View>

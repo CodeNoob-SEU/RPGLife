@@ -1,8 +1,9 @@
 import { createInitialState } from '../src/domain/initialState';
+import { CURRENT_VERSION } from '../src/domain/version';
 
 test('createInitialState seeds placeholder content and valid config', () => {
   const s = createInitialState(new Date(2026, 5, 1));
-  expect(s.version).toBe(1);
+  expect(s.version).toBe(CURRENT_VERSION);
   expect(s.dailies.length).toBe(4);
   expect(s.weeklies.length).toBe(3);
   expect(s.trials.length).toBe(1);

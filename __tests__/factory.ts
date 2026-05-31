@@ -1,4 +1,5 @@
 import { AppState, Config } from '../src/domain/types';
+import { CURRENT_VERSION } from '../src/domain/version';
 
 export const testConfig: Config = {
   goldToYuanRate: 100,
@@ -7,12 +8,13 @@ export const testConfig: Config = {
   missedDailyPenaltyRate: 0.5, dailyPenaltyCap: 100, weeklyPenaltyRate: 0.5,
   freezeCardCost: 100, cashOutThreshold: 1000, restDaysPerWeek: 1,
   longAbsenceThreshold: 7, levelExpBase: 50, levelExpStep: 50,
+  reduceMotion: false, soundEnabled: true, hapticsEnabled: true,
 };
 
 /** 构造一个干净的空 state（无任务），供单测自由填充。 */
 export function makeState(over: Partial<AppState> = {}): AppState {
   return {
-    version: 1,
+    version: CURRENT_VERSION,
     player: { name: '冒险者', level: 1, exp: 0, expTotal: 0, gold: 0, avatarTier: 0, lastActiveDate: null },
     dailies: [], weeklies: [], trials: [], bosses: [],
     inventory: { freezeCards: 0 },

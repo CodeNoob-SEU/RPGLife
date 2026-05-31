@@ -42,7 +42,7 @@ export function CelebrationOverlay() {
   return (
     <>
       {head ? (
-        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           <Animated.View style={[{ backgroundColor: colors.bgPanel, paddingVertical: space(4), paddingHorizontal: space(6) }, pixelBorder, pixelShadow, aStyle]}>
             <PixelText style={{ color: TEXT[head].color, fontSize: 20, textAlign: 'center' }}>{TEXT[head].title}</PixelText>
           </Animated.View>

@@ -4,6 +4,7 @@ import { immer } from 'zustand/middleware/immer';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createInitialState } from '../domain/initialState';
 import { migrate as migrateState } from '../domain/migrate';
+import { CURRENT_VERSION } from '../domain/version';
 import { createGameActions, GameStore } from './gameActions';
 
 export const useGameStore = create<GameStore>()(
@@ -14,7 +15,7 @@ export const useGameStore = create<GameStore>()(
     })),
     {
       name: 'rpglife-state',
-      version: 1,
+      version: CURRENT_VERSION,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (s): Omit<GameStore, 'actions'> => {
         const { actions, ...data } = s; // 不持久化函数

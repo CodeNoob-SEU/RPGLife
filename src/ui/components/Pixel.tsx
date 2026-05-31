@@ -55,7 +55,7 @@ export function PixelTextInput({
       value={value}
       onChangeText={onChangeText}
       placeholder={placeholder}
-      placeholderTextColor="#7a7f9a"
+      placeholderTextColor={colors.textDim}
       keyboardType={numeric ? 'numeric' : 'default'}
       multiline={multiline}
       style={[

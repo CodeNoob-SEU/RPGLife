@@ -1,8 +1,9 @@
 import { migrate } from '../src/domain/migrate';
+import { CURRENT_VERSION } from '../src/domain/version';
 
-test('migrate fills missing fields from a fresh state and forces version 1', () => {
+test('migrate fills missing fields from a fresh state and stamps current version', () => {
   const result = migrate({ player: { gold: 999 }, version: 1 } as any, 1);
-  expect(result.version).toBe(1);
+  expect(result.version).toBe(CURRENT_VERSION);
   expect(result.player.gold).toBe(999);          // persisted value kept
   expect(result.player.level).toBe(1);           // missing field defaulted
   expect(result.pendingCelebrations).toEqual([]); // missing transient defaulted
@@ -12,7 +13,7 @@ test('migrate fills missing fields from a fresh state and forces version 1', () 
 
 test('migrate returns a full fresh state for garbage input', () => {
   const result = migrate(null, 0);
-  expect(result.version).toBe(1);
+  expect(result.version).toBe(CURRENT_VERSION);
   expect(result.dailies.length).toBeGreaterThan(0);
 });
 
