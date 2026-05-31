@@ -3,6 +3,6 @@
  * docs/superpowers/specs/2026-06-01-commercialization-enhancement-design.md §2）。
  * initialState / migrate / store persist 三处共用此常量，旧存档加载时会重跑 migrate 补默认。
  *
- * 版本链：v1 基线 → v2 配置偏好(reduceMotion/sound/haptics)。
+ * 版本链：v1 基线 → v2 配置偏好(reduceMotion/sound/haptics) → v3 一次性委托(oneoffs)。
  */
-export const CURRENT_VERSION = 2;
+export const CURRENT_VERSION = 3;

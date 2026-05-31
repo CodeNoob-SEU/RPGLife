@@ -39,6 +39,10 @@ export function createInitialState(now: Date): AppState {
     bosses: [
       { id: 'b-book', name: '读完一本书', icon: '👹', maxHp: 200, hp: 200, damagePerHit: 20, totalRewardGold: 600, totalRewardExp: 300, weights: [0.2, 0.3, 0.5], linkedTaskIds: [readingId], clearedStages: [], defeated: false, archived: false },
     ],
+    oneoffs: [
+      { id: 'o-desk', name: '整理书桌', gold: 30, exp: 15, icon: '🗂️', doneDate: null, archived: false },
+      { id: 'o-checkup', name: '预约体检', gold: 60, exp: 30, icon: '🏥', doneDate: null, archived: false },
+    ],
     inventory: { freezeCards: 1 },
     restDays: { weekKey: weekKey(now), remaining: defaultConfig.restDaysPerWeek },
     config: { ...defaultConfig },

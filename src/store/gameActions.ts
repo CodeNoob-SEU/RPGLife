@@ -5,6 +5,7 @@ import {
   checkInDaily as domainCheckInDaily,
   checkInWeekly as domainCheckInWeekly,
   checkInTrial as domainCheckInTrial,
+  checkInOneoff as domainCheckInOneoff,
   undoCheckIn,
   buyFreezeCard as domainBuyFreezeCard,
   cashOut as domainCashOut,
@@ -23,6 +24,7 @@ export interface GameActions {
   checkInDaily: (id: string, now?: Date) => void;
   checkInWeekly: (id: string, now?: Date) => void;
   checkInTrial: (id: string, now?: Date) => void;
+  checkInOneoff: (id: string, now?: Date) => void;
   undo: (rid: string, now?: Date) => void;
   buyFreezeCard: (now?: Date) => void;
   cashOut: (amount: number, now?: Date) => void;
@@ -35,6 +37,9 @@ export interface GameActions {
   addTrial: (name: string, icon?: string, now?: Date) => void;
   editTrial: (id: string, patch: Partial<{ name: string; icon: string }>) => void;
   archiveTrial: (id: string) => void;
+  addOneoff: (name: string, gold: number, exp: number, icon?: string) => void;
+  editOneoff: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string }>) => void;
+  archiveOneoff: (id: string) => void;
   addBoss: (b: { name: string; icon?: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; linkedTaskIds: string[]; weights?: [number, number, number] }) => void;
   editBoss: (id: string, patch: Partial<{ name: string; icon: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; weights: [number, number, number]; linkedTaskIds: string[] }>) => void;
   archiveBoss: (id: string) => void;
@@ -55,6 +60,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   checkInDaily: (id, now = new Date()) => set((s) => { domainCheckInDaily(s, id, now); }),
   checkInWeekly: (id, now = new Date()) => set((s) => { domainCheckInWeekly(s, id, now); }),
   checkInTrial: (id, now = new Date()) => set((s) => { domainCheckInTrial(s, id, now); }),
+  checkInOneoff: (id, now = new Date()) => set((s) => { domainCheckInOneoff(s, id, now); }),
   undo: (rid, now = new Date()) => set((s) => { undoCheckIn(s, rid, now); }),
   buyFreezeCard: (now = new Date()) => set((s) => { domainBuyFreezeCard(s, now); }),
   cashOut: (amount, now = new Date()) => set((s) => { domainCashOut(s, amount, now); }),
@@ -76,6 +82,12 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   }),
   editTrial: (id, patch) => set((s) => { const t = s.trials.find((x) => x.id === id); if (t) Object.assign(t, patch); }),
   archiveTrial: (id) => set((s) => { const t = s.trials.find((x) => x.id === id); if (t) t.archived = true; }),
+
+  addOneoff: (name, gold, exp, icon = '📦') => set((s) => {
+    s.oneoffs.push({ id: genId('oneoff'), name, gold, exp, icon, doneDate: null, archived: false });
+  }),
+  editOneoff: (id, patch) => set((s) => { const o = s.oneoffs.find((x) => x.id === id); if (o) Object.assign(o, patch); }),
+  archiveOneoff: (id) => set((s) => { const o = s.oneoffs.find((x) => x.id === id); if (o) o.archived = true; }),
 
   addBoss: (b) => set((s) => {
     s.bosses.push({ id: genId('boss'), name: b.name, icon: b.icon ?? '👹', maxHp: b.maxHp, hp: b.maxHp, damagePerHit: b.damagePerHit, totalRewardGold: b.totalRewardGold, totalRewardExp: b.totalRewardExp, weights: b.weights ?? [0.2, 0.3, 0.5], linkedTaskIds: b.linkedTaskIds, clearedStages: [], defeated: false, archived: false });

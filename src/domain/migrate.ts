@@ -22,6 +22,7 @@ export function migrate(persisted: unknown, _fromVersion: number): AppState {
     weeklies: p.weeklies ?? fresh.weeklies,
     trials: p.trials ?? fresh.trials,
     bosses: p.bosses ?? fresh.bosses,
+    oneoffs: p.oneoffs ?? fresh.oneoffs,
     ledger: p.ledger ?? fresh.ledger,
     history: p.history ?? fresh.history,
     todayReceipts: p.todayReceipts ?? [],

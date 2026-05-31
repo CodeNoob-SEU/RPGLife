@@ -90,6 +90,18 @@ export function checkInWeekly(state: AppState, id: string, now: Date): void {
   }
 }
 
+/** 一次性委托打卡：纯发金币/经验 + 回执（同日可撤）。不触发每日全清、不联动 Boss、不参与 rollover。 */
+export function checkInOneoff(state: AppState, id: string, now: Date): void {
+  const today = dateStr(now);
+  const o = state.oneoffs.find((x) => x.id === id);
+  if (!o || o.archived || o.doneDate !== null) return; // doneDate!==null 即永久完成
+  const r = newReceipt('oneoff', id, today);
+  o.doneDate = today;
+  addGoldR(state, r, o.gold, 'earn', `完成委托: ${o.name}`, now);
+  addExpR(state, r, o.exp);
+  state.todayReceipts.push(r);
+}
+
 function graduateTrial(state: AppState, t: Trial): string {
   t.graduated = true;
   const newId = `daily-from-${t.id}`;
@@ -136,7 +148,7 @@ export function undoCheckIn(state: AppState, rid: string, now: Date): void {
   } else if (r.kind === 'weekly') {
     const w = state.weeklies.find((x) => x.id === r.taskId);
     if (w) w.doneWeek = null;
-  } else {
+  } else if (r.kind === 'trial') {
     const t = state.trials.find((x) => x.id === r.taskId);
     if (t) {
       t.completedDates = t.completedDates.filter((x) => x !== r.date);
@@ -148,6 +160,9 @@ export function undoCheckIn(state: AppState, rid: string, now: Date): void {
       }
       t.streak = computeStreak(t, r.date);
     }
+  } else if (r.kind === 'oneoff') {
+    const o = state.oneoffs.find((x) => x.id === r.taskId);
+    if (o) o.doneDate = null;
   }
 
   // 2) Boss 回退

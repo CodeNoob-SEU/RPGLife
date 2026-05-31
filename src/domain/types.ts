@@ -6,6 +6,8 @@ export type LedgerType = 'earn' | 'penalty' | 'purchase' | 'cashout' | 'bonus' |
 
 export interface Daily { id: string; name: string; gold: number; exp: number; icon: string; doneDate: DateStr | null; archived: boolean; }
 export interface Weekly { id: string; name: string; gold: number; exp: number; icon: string; doneWeek: WeekKey | null; archived: boolean; }
+/** 一次性委托：纯奖励待办，无截止无惩罚，不随 rollover 重置；doneDate!==null 即永久完成。 */
+export interface OneOff { id: string; name: string; gold: number; exp: number; icon: string; doneDate: DateStr | null; archived: boolean; }
 export interface Milestone { day: number; gold: number; exp: number; }
 export interface Trial {
   id: string; name: string; icon: string; startDate: DateStr;
@@ -35,7 +37,7 @@ export interface Config {
 }
 export interface BossHit { bossId: string; damage: number; clearedStages: number[]; defeated: boolean; }
 export interface Receipt {
-  rid: string; kind: 'daily' | 'weekly' | 'trial'; taskId: string; date: DateStr;
+  rid: string; kind: 'daily' | 'weekly' | 'trial' | 'oneoff'; taskId: string; date: DateStr;
   goldDelta: number; expDelta: number;
   claimedMilestones?: number[]; graduation?: { addedDailyId: string }; bossHits?: BossHit[];
 }
@@ -43,7 +45,7 @@ export interface Player { name: string; level: number; exp: number; expTotal: nu
 export interface AppState {
   version: number;
   player: Player;
-  dailies: Daily[]; weeklies: Weekly[]; trials: Trial[]; bosses: Boss[];
+  dailies: Daily[]; weeklies: Weekly[]; trials: Trial[]; bosses: Boss[]; oneoffs: OneOff[];
   inventory: { freezeCards: number };
   restDays: { weekKey: WeekKey; remaining: number };
   config: Config;
