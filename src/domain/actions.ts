@@ -122,3 +122,64 @@ export function checkInTrial(state: AppState, id: string, now: Date): void {
   applyBossDamageForTask(state, r, id, now);
   state.todayReceipts.push(r);
 }
+
+export function undoCheckIn(state: AppState, rid: string, now: Date): void {
+  const idx = state.todayReceipts.findIndex((x) => x.rid === rid);
+  if (idx === -1) return;
+  const r = state.todayReceipts[idx];
+  const today = dateStr(now);
+
+  // 1) 结构回退
+  if (r.kind === 'daily') {
+    const d = state.dailies.find((x) => x.id === r.taskId);
+    if (d) d.doneDate = null;
+  } else if (r.kind === 'weekly') {
+    const w = state.weeklies.find((x) => x.id === r.taskId);
+    if (w) w.doneWeek = null;
+  } else {
+    const t = state.trials.find((x) => x.id === r.taskId);
+    if (t) {
+      t.completedDates = t.completedDates.filter((x) => x !== r.date);
+      if (r.claimedMilestones) t.claimedMilestones = t.claimedMilestones.filter((m) => !r.claimedMilestones!.includes(m));
+      if (r.graduation) {
+        t.graduated = false;
+        const gid = r.graduation.addedDailyId;
+        state.dailies = state.dailies.filter((x) => x.id !== gid);
+      }
+      t.streak = computeStreak(t, today);
+    }
+  }
+
+  // 2) Boss 回退
+  for (const h of r.bossHits ?? []) {
+    const b = state.bosses.find((x) => x.id === h.bossId);
+    if (!b) continue;
+    b.hp = Math.min(b.maxHp, b.hp + h.damage);
+    b.clearedStages = b.clearedStages.filter((s) => !h.clearedStages.includes(s));
+    if (h.defeated) b.defeated = false;
+  }
+
+  // 3) 金币/经验完整回退
+  state.player.gold = Math.max(0, state.player.gold - r.goldDelta);
+  applyExpDelta(state, -r.expDelta);
+  state.ledger.push({ ts: now.getTime(), date: today, type: 'undo', amount: -r.goldDelta, expAmount: -r.expDelta, note: `撤销: ${r.taskId}` });
+
+  // 4) 全清奖励重判
+  if (r.kind === 'daily' && state.dailyPerfect?.date === today && !allDailiesDone(state, today)) {
+    state.player.gold = Math.max(0, state.player.gold - state.dailyPerfect.gold);
+    applyExpDelta(state, -state.dailyPerfect.exp);
+    state.ledger.push({ ts: now.getTime(), date: today, type: 'undo', amount: -state.dailyPerfect.gold, expAmount: -state.dailyPerfect.exp, note: '撤销每日全清' });
+    state.dailyPerfect = null;
+  }
+  if (r.kind === 'weekly') {
+    const week = weekKey(now);
+    if (state.weeklyPerfect?.week === week && !allWeekliesDone(state, week)) {
+      state.player.gold = Math.max(0, state.player.gold - state.weeklyPerfect.gold);
+      applyExpDelta(state, -state.weeklyPerfect.exp);
+      state.ledger.push({ ts: now.getTime(), date: today, type: 'undo', amount: -state.weeklyPerfect.gold, expAmount: -state.weeklyPerfect.exp, note: '撤销每周全清' });
+      state.weeklyPerfect = null;
+    }
+  }
+
+  state.todayReceipts.splice(idx, 1);
+}
