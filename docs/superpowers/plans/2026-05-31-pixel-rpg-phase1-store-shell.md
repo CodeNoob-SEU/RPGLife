@@ -28,8 +28,12 @@
 Run:
 ```bash
 npx expo install zustand immer @react-native-async-storage/async-storage @react-navigation/native @react-navigation/bottom-tabs react-native-screens react-native-safe-area-context react-native-reanimated
+# web 必需依赖（export/start --web 需要）：
+npx expo install react-dom react-native-web @expo/metro-runtime
+# 新增 babel.config.js 后，babel-preset-expo 必须可作为顶层模块解析（SDK 56 blank 模板默认不带）：
+npm install -D babel-preset-expo
 ```
-Expected: 安装成功（`expo install` 会选择与 SDK 56 兼容的版本）。若 `npm` 缓存报 EACCES，使用项目根 `.npmrc`（已设 `cache=/tmp/rpglife-npm-cache`）。
+Expected: 安装成功。若 `npm` 缓存报 EACCES，使用项目根 `.npmrc`（已设 `cache=/tmp/rpglife-npm-cache`）。**实测**：SDK 56 装的是 reanimated **4.x**（+ react-native-worklets），故 babel 插件用 `react-native-worklets/plugin`（见 Step 2）。
 
 - [ ] **Step 2: 创建 `babel.config.js`（reanimated 插件必须在最后）**
 
@@ -38,7 +42,7 @@ module.exports = function (api) {
   api.cache(true);
   return {
     presets: ['babel-preset-expo'],
-    plugins: ['react-native-reanimated/plugin'],
+    plugins: ['react-native-worklets/plugin'], // reanimated 4：插件已迁到 worklets 包，必须放最后
   };
 };
 ```
