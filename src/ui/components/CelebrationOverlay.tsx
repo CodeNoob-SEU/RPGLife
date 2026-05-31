@@ -5,6 +5,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { CelebrationKind } from '../../domain/types';
 import { colors, pixelBorder, pixelShadow, space } from '../theme';
 import { PixelText, PixelButton } from './Pixel';
+import { haptics } from '../haptics';
 
 const TEXT: Record<CelebrationKind, { title: string; color: string }> = {
   levelUp: { title: 'LEVEL UP!', color: colors.gold },
@@ -30,6 +31,7 @@ export function CelebrationOverlay() {
     // the flag and consumes; the queue-length change then re-fires the effect for the next.
     if (!head || animatingRef.current) return;
     animatingRef.current = true;
+    haptics.success();
     const finish = () => { animatingRef.current = false; actions.consumeCelebration(); };
     opacity.value = 0;
     scale.value = 0.6;

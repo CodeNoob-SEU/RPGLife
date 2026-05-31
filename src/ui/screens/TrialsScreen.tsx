@@ -6,6 +6,7 @@ import { Trial } from '../../domain/types';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, PixelProgressBar, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle } from '../components/Pixel';
 import { useGainFloat } from '../components/GainFloat';
+import { haptics } from '../haptics';
 
 export function TrialsScreen() {
   const trials = useGameStore((s) => s.trials);
@@ -27,6 +28,7 @@ export function TrialsScreen() {
   const nextMilestone = (t: Trial) => [...t.milestones].sort((a, b) => a.day - b.day).find((m) => m.day > t.streak);
 
   const checkInTrialWithFloat = (id: string) => {
+    haptics.light();
     const before = useGameStore.getState().player;
     actions.checkInTrial(id);
     const after = useGameStore.getState().player;
@@ -68,7 +70,7 @@ export function TrialsScreen() {
                 )}
                 <View style={{ flexDirection: 'row', gap: space(2), flexWrap: 'wrap' }}>
                   {done && rid
-                    ? <PixelButton label="撤销今日打卡" color={colors.bgPanel} onPress={() => actions.undo(rid)} />
+                    ? <PixelButton label="撤销今日打卡" color={colors.bgPanel} onPress={() => { haptics.medium(); actions.undo(rid); }} />
                     : <PixelButton label={done ? '今日已打卡' : '今日打卡'} color={colors.success} disabled={done && !rid} onPress={() => checkInTrialWithFloat(t.id)} />}
                   <PixelButton label="编辑" color={colors.bgPanel} onPress={() => { setEditing(t); setEditName(t.name); }} />
                   <PixelButton label="放弃" color={colors.danger} onPress={() => setAbandon(t)} />

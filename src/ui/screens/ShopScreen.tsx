@@ -3,6 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { useGameStore } from '../../store/useGameStore';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, ConfirmDialog, SectionTitle } from '../components/Pixel';
+import { haptics } from '../haptics';
 
 export function ShopScreen() {
   const gold = useGameStore((s) => s.player.gold);
@@ -24,7 +25,7 @@ export function ShopScreen() {
           <PixelText style={{ color: colors.ink, fontWeight: 'bold' }}>❄ 冻结卡</PixelText>
           <PixelText style={{ color: colors.ink }}>断签时自动消耗一张保护连击。当前持有：{freezeCards} 张</PixelText>
           <PixelText style={{ color: colors.gold }}>单价 🪙{config.freezeCardCost}（你有 🪙{gold}）</PixelText>
-          <PixelButton label={canBuy ? '购买一张' : '金币不足'} color={canBuy ? colors.success : colors.bgPanel} disabled={!canBuy} onPress={() => actions.buyFreezeCard()} />
+          <PixelButton label={canBuy ? '购买一张' : '金币不足'} color={canBuy ? colors.success : colors.bgPanel} disabled={!canBuy} onPress={() => { haptics.success(); actions.buyFreezeCard(); }} />
         </View>
       </PixelPanel>
 
@@ -43,7 +44,7 @@ export function ShopScreen() {
         message={`将提现 🪙${gold} = ¥${yuan}。金币会从账户扣除，此操作不可撤销。`}
         confirmLabel="确认提现"
         onCancel={() => setConfirming(false)}
-        onConfirm={() => { actions.cashOut(gold); setConfirming(false); }}
+        onConfirm={() => { haptics.success(); actions.cashOut(gold); setConfirming(false); }}
       />
     </ScrollView>
   );

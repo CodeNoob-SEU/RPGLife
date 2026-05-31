@@ -4,6 +4,7 @@ import { dateStr } from '../../domain/dateUtils';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, SectionTitle } from '../components/Pixel';
 import { useGainFloat } from '../components/GainFloat';
+import { haptics } from '../haptics';
 
 export function QuestsScreen() {
   // Select stable refs, filter in render body (filtering inside the selector → React #185).
@@ -18,6 +19,7 @@ export function QuestsScreen() {
   const ridFor = (kind: string, id: string) => todayReceipts.find((r) => r.kind === kind && r.taskId === id)?.rid;
 
   const checkInWithFloat = (kind: 'daily' | 'weekly', id: string) => {
+    haptics.light();
     const before = useGameStore.getState().player;
     if (kind === 'daily') actions.checkInDaily(id); else actions.checkInWeekly(id);
     const after = useGameStore.getState().player;
@@ -25,6 +27,7 @@ export function QuestsScreen() {
     const de = after.expTotal - before.expTotal;
     if (dg !== 0 || de !== 0) fire(`🪙+${dg} ✨+${de}`);
   };
+  const onUndo = (rid: string) => { haptics.medium(); actions.undo(rid); };
 
   return (
     <View style={{ flex: 1 }}>
@@ -43,7 +46,7 @@ export function QuestsScreen() {
                 <PixelText style={{ fontSize: 18 }}>{d.icon}</PixelText>
                 <PixelText style={{ color: colors.ink, flex: 1 }}>{d.name}　🪙{d.gold} ✨{d.exp}</PixelText>
                 {done && rid
-                  ? <PixelButton label="撤销" color={colors.bgPanel} onPress={() => actions.undo(rid)} />
+                  ? <PixelButton label="撤销" color={colors.bgPanel} onPress={() => onUndo(rid)} />
                   : <PixelButton label={done ? '已完成' : '打卡'} color={colors.success} disabled={done && !rid} onPress={() => checkInWithFloat('daily', d.id)} />}
               </View>
             </PixelPanel>
@@ -60,7 +63,7 @@ export function QuestsScreen() {
                 <PixelText style={{ fontSize: 18 }}>{w.icon}</PixelText>
                 <PixelText style={{ color: colors.ink, flex: 1 }}>{w.name}　🪙{w.gold} ✨{w.exp}</PixelText>
                 {done && rid
-                  ? <PixelButton label="撤销" color={colors.bgPanel} onPress={() => actions.undo(rid)} />
+                  ? <PixelButton label="撤销" color={colors.bgPanel} onPress={() => onUndo(rid)} />
                   : <PixelButton label={done ? '已完成' : '打卡'} color={colors.success} disabled={done && !rid} onPress={() => checkInWithFloat('weekly', w.id)} />}
               </View>
             </PixelPanel>
