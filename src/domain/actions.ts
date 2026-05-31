@@ -100,7 +100,7 @@ function graduateTrial(state: AppState, t: Trial): string {
 export function checkInTrial(state: AppState, id: string, now: Date): void {
   const today = dateStr(now);
   const t = state.trials.find((x) => x.id === id);
-  if (!t || t.graduated || t.completedDates.includes(today)) return;
+  if (!t || t.archived || t.graduated || t.completedDates.includes(today)) return;
   const r = newReceipt('trial', id, today);
   t.completedDates.push(today);
   t.streak = computeStreak(t, today);

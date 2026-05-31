@@ -59,3 +59,61 @@ test('reset restores a fresh initial state', () => {
   expect(s.getState().player.gold).toBe(0);
   expect(s.getState().todayReceipts).toHaveLength(0);
 });
+
+test('archiveTrial soft-archives (keeps the trial, sets archived=true)', () => {
+  const s = makeStore();
+  const id = s.getState().trials[0].id; // seed 't-words'
+  s.getState().actions.archiveTrial(id);
+  const t = s.getState().trials.find((x) => x.id === id);
+  expect(t).toBeDefined();          // 不物理删除
+  expect(t!.archived).toBe(true);
+});
+
+test('archiveBoss soft-archives a boss', () => {
+  const s = makeStore();
+  const id = s.getState().bosses[0].id; // seed 'b-book'
+  s.getState().actions.archiveBoss(id);
+  expect(s.getState().bosses.find((x) => x.id === id)!.archived).toBe(true);
+});
+
+test('editTrial patches name/icon', () => {
+  const s = makeStore();
+  const id = s.getState().trials[0].id;
+  s.getState().actions.editTrial(id, { name: '每天背 20 个单词', icon: '📚' });
+  const t = s.getState().trials.find((x) => x.id === id)!;
+  expect(t.name).toBe('每天背 20 个单词');
+  expect(t.icon).toBe('📚');
+});
+
+test('editBoss patches fields and clamps hp to maxHp', () => {
+  const s = makeStore();
+  const id = s.getState().bosses[0].id;
+  s.getState().actions.editBoss(id, { name: '读完两本书', maxHp: 50 });
+  const b = s.getState().bosses.find((x) => x.id === id)!;
+  expect(b.name).toBe('读完两本书');
+  expect(b.maxHp).toBe(50);
+  expect(b.hp).toBeLessThanOrEqual(50); // 原 hp=200 被夹到 <=50
+});
+
+test('addBoss appends with given weights and full hp', () => {
+  const s = makeStore();
+  const before = s.getState().bosses.length;
+  s.getState().actions.addBoss({ name: '健身 30 天', maxHp: 300, damagePerHit: 30, totalRewardGold: 900, totalRewardExp: 450, linkedTaskIds: ['d-exercise'], weights: [0.1, 0.4, 0.5] });
+  expect(s.getState().bosses.length).toBe(before + 1);
+  const b = s.getState().bosses[s.getState().bosses.length - 1];
+  expect(b.id).toMatch(/^boss-/);
+  expect(b.hp).toBe(300);
+  expect(b.weights).toEqual([0.1, 0.4, 0.5]);
+  expect(b.archived).toBe(false);
+});
+
+test('checkInTrial is a no-op on an archived (soft-archived) trial', () => {
+  const s = makeStore();
+  const id = s.getState().trials[0].id;
+  s.getState().actions.archiveTrial(id);            // soft-archive
+  const goldBefore = s.getState().player.gold;
+  s.getState().actions.checkInTrial(id, now);       // must do nothing
+  const t = s.getState().trials.find((x) => x.id === id)!;
+  expect(t.completedDates).toHaveLength(0);
+  expect(s.getState().player.gold).toBe(goldBefore);
+});

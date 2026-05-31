@@ -32,8 +32,11 @@ export interface GameActions {
   editWeekly: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string }>) => void;
   archiveWeekly: (id: string) => void;
   addTrial: (name: string, icon?: string, now?: Date) => void;
+  editTrial: (id: string, patch: Partial<{ name: string; icon: string }>) => void;
   archiveTrial: (id: string) => void;
-  addBoss: (b: { name: string; icon?: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; linkedTaskIds: string[] }) => void;
+  addBoss: (b: { name: string; icon?: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; linkedTaskIds: string[]; weights?: [number, number, number] }) => void;
+  editBoss: (id: string, patch: Partial<{ name: string; icon: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; weights: [number, number, number]; linkedTaskIds: string[] }>) => void;
+  archiveBoss: (id: string) => void;
   setConfig: (patch: Partial<Config>) => void;
   consumeCelebration: () => void;
   consumeNotice: () => void;
@@ -70,11 +73,19 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   addTrial: (name, icon = '🎯', now = new Date()) => set((s) => {
     s.trials.push({ id: genId('trial'), name, icon, startDate: dateStr(now), completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [], graduated: false, archived: false, milestones: MILESTONES.map((m) => ({ ...m })) });
   }),
-  archiveTrial: (id) => set((s) => { s.trials = s.trials.filter((t) => t.id !== id); }),
+  editTrial: (id, patch) => set((s) => { const t = s.trials.find((x) => x.id === id); if (t) Object.assign(t, patch); }),
+  archiveTrial: (id) => set((s) => { const t = s.trials.find((x) => x.id === id); if (t) t.archived = true; }),
 
   addBoss: (b) => set((s) => {
-    s.bosses.push({ id: genId('boss'), name: b.name, icon: b.icon ?? '👹', maxHp: b.maxHp, hp: b.maxHp, damagePerHit: b.damagePerHit, totalRewardGold: b.totalRewardGold, totalRewardExp: b.totalRewardExp, weights: [0.2, 0.3, 0.5], linkedTaskIds: b.linkedTaskIds, clearedStages: [], defeated: false, archived: false });
+    s.bosses.push({ id: genId('boss'), name: b.name, icon: b.icon ?? '👹', maxHp: b.maxHp, hp: b.maxHp, damagePerHit: b.damagePerHit, totalRewardGold: b.totalRewardGold, totalRewardExp: b.totalRewardExp, weights: b.weights ?? [0.2, 0.3, 0.5], linkedTaskIds: b.linkedTaskIds, clearedStages: [], defeated: false, archived: false });
   }),
+  editBoss: (id, patch) => set((s) => {
+    const b = s.bosses.find((x) => x.id === id);
+    if (!b) return;
+    Object.assign(b, patch);
+    if (patch.maxHp !== undefined) b.hp = Math.min(b.hp, b.maxHp);
+  }),
+  archiveBoss: (id) => set((s) => { const b = s.bosses.find((x) => x.id === id); if (b) b.archived = true; }),
 
   setConfig: (patch) => set((s) => { Object.assign(s.config, patch); }),
   consumeCelebration: () => set((s) => { s.pendingCelebrations.shift(); }),
