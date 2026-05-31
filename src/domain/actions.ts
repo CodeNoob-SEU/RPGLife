@@ -1,6 +1,7 @@
-import { AppState, Receipt } from './types';
+import { AppState, Receipt, Trial } from './types';
 import { dateStr, weekKey } from './dateUtils';
 import { addGold, applyExpDelta, pushCelebration } from './economy';
+import { computeStreak } from './trials';
 
 function newReceipt(kind: Receipt['kind'], taskId: string, date: string): Receipt {
   return { rid: `${kind}:${taskId}:${date}`, kind, taskId, date, goldDelta: 0, expDelta: 0 };
@@ -87,4 +88,37 @@ export function checkInWeekly(state: AppState, id: string, now: Date): void {
     state.weeklyPerfect = { week, gold: state.config.perfectWeeklyBonus, exp: state.config.perfectWeeklyBonusExp };
     pushCelebration(state, 'perfectWeek');
   }
+}
+
+function graduateTrial(state: AppState, t: Trial): string {
+  t.graduated = true;
+  const newId = `daily-from-${t.id}`;
+  state.dailies.push({ id: newId, name: t.name, gold: 15, exp: 8, icon: t.icon, doneDate: null, archived: false });
+  return newId;
+}
+
+export function checkInTrial(state: AppState, id: string, now: Date): void {
+  const today = dateStr(now);
+  const t = state.trials.find((x) => x.id === id);
+  if (!t || t.graduated || t.completedDates.includes(today)) return;
+  const r = newReceipt('trial', id, today);
+  t.completedDates.push(today);
+  t.streak = computeStreak(t, today);
+  const claimed: number[] = [];
+  for (const m of [...t.milestones].sort((a, b) => a.day - b.day)) {
+    if (t.streak >= m.day && !t.claimedMilestones.includes(m.day)) {
+      addGoldR(state, r, m.gold, 'bonus', `试炼里程碑 D${m.day}: ${t.name}`, now);
+      addExpR(state, r, m.exp);
+      t.claimedMilestones.push(m.day);
+      claimed.push(m.day);
+    }
+  }
+  if (claimed.length) r.claimedMilestones = claimed;
+  if (t.streak >= 14 && !t.graduated) {
+    const newId = graduateTrial(state, t);
+    r.graduation = { addedDailyId: newId };
+    pushCelebration(state, 'graduation');
+  }
+  applyBossDamageForTask(state, r, id, now);
+  state.todayReceipts.push(r);
 }
