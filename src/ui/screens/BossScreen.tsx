@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { useGameStore } from '../../store/useGameStore';
 import { Boss } from '../../domain/types';
-import { colors, pixelBorder, space } from '../theme';
-import { PixelPanel, PixelButton, PixelText, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle } from '../components/Pixel';
+import { colors, space } from '../theme';
+import { PixelButton, PixelText, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle } from '../components/Pixel';
+import { BossCard } from '../components/BossCard';
 
 type Draft = {
   name: string; maxHp: string; damagePerHit: string;
@@ -66,44 +67,9 @@ export function BossScreen() {
 
       {active.length === 0 ? <PixelText style={{ color: colors.ink }}>暂无 Boss。</PixelText> : null}
 
-      {active.map((b) => {
-        const pct = b.maxHp > 0 ? Math.max(0, Math.min(100, (b.hp / b.maxHp) * 100)) : 0;
-        return (
-          <PixelPanel key={b.id}>
-            <View style={{ gap: space(2) }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
-                <PixelText style={{ fontSize: 22 }}>{b.icon}</PixelText>
-                <PixelText style={{ color: colors.ink, flex: 1, fontWeight: 'bold' }}>{b.name}</PixelText>
-                <PixelText style={{ color: b.defeated ? colors.success : colors.danger }}>{b.defeated ? '☠ 已击杀' : `${b.hp}/${b.maxHp} HP`}</PixelText>
-              </View>
-
-              <View style={[{ height: space(5), backgroundColor: colors.bgDeep, justifyContent: 'center' }, pixelBorder]}>
-                <View style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: `${pct}%`, backgroundColor: colors.danger }} />
-                <View style={{ position: 'absolute', left: '33.33%', top: 0, bottom: 0, width: 2, backgroundColor: colors.border }} />
-                <View style={{ position: 'absolute', left: '66.66%', top: 0, bottom: 0, width: 2, backgroundColor: colors.border }} />
-              </View>
-
-              <View style={{ flexDirection: 'row', gap: space(2) }}>
-                {[1, 2, 3].map((i) => {
-                  const cleared = b.clearedStages.includes(i);
-                  return (
-                    <View key={i} style={[{ flex: 1, padding: space(1), backgroundColor: cleared ? colors.success : colors.bgDeep }, pixelBorder]}>
-                      <PixelText style={{ color: colors.ink, fontSize: 11 }}>阶段{i}{cleared ? ' ✅' : ''}</PixelText>
-                      <PixelText style={{ color: colors.gold, fontSize: 11 }}>🪙{Math.floor(b.totalRewardGold * b.weights[i - 1])} ✨{Math.floor(b.totalRewardExp * b.weights[i - 1])}</PixelText>
-                    </View>
-                  );
-                })}
-              </View>
-
-              <PixelText style={{ color: colors.ink, fontSize: 12 }}>关联任务：{b.linkedTaskIds.length ? b.linkedTaskIds.map(nameOf).join('，') : '（无）'}　每次伤害 {b.damagePerHit}</PixelText>
-              <View style={{ flexDirection: 'row', gap: space(2) }}>
-                <PixelButton label="编辑" color={colors.bgPanel} onPress={() => openEdit(b)} />
-                <PixelButton label="归档" color={colors.danger} onPress={() => setArchiving(b)} />
-              </View>
-            </View>
-          </PixelPanel>
-        );
-      })}
+      {active.map((b) => (
+        <BossCard key={b.id} boss={b} nameOf={nameOf} onEdit={() => openEdit(b)} onArchive={() => setArchiving(b)} />
+      ))}
 
       <PixelModal visible={!!draft} onRequestClose={() => setDraft(null)}>
         {draft ? (
