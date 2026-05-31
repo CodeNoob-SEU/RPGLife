@@ -1,0 +1,26 @@
+import { AppState, Config } from '../src/domain/types';
+
+export const testConfig: Config = {
+  goldToYuanRate: 100,
+  perfectDailyBonus: 50, perfectDailyBonusExp: 20,
+  perfectWeeklyBonus: 200, perfectWeeklyBonusExp: 100,
+  missedDailyPenaltyRate: 0.5, dailyPenaltyCap: 100, weeklyPenaltyRate: 0.5,
+  freezeCardCost: 100, cashOutThreshold: 1000, restDaysPerWeek: 1,
+  longAbsenceThreshold: 7, levelExpBase: 50, levelExpStep: 50,
+};
+
+/** 构造一个干净的空 state（无任务），供单测自由填充。 */
+export function makeState(over: Partial<AppState> = {}): AppState {
+  return {
+    version: 1,
+    player: { name: '冒险者', level: 1, exp: 0, expTotal: 0, gold: 0, avatarTier: 0, lastActiveDate: null },
+    dailies: [], weeklies: [], trials: [], bosses: [],
+    inventory: { freezeCards: 0 },
+    restDays: { weekKey: '', remaining: 0 },
+    config: { ...testConfig },
+    ledger: [], history: {},
+    todayReceipts: [], dailyPerfect: null, weeklyPerfect: null,
+    pendingCelebrations: [], pendingNotice: null,
+    ...over,
+  };
+}
