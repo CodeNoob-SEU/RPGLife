@@ -1,0 +1,84 @@
+import { AppState, Config } from '../domain/types';
+import { dateStr } from '../domain/dateUtils';
+import { processRollover } from '../domain/settlement';
+import {
+  checkInDaily as domainCheckInDaily,
+  checkInWeekly as domainCheckInWeekly,
+  checkInTrial as domainCheckInTrial,
+  undoCheckIn,
+  buyFreezeCard as domainBuyFreezeCard,
+  cashOut as domainCashOut,
+} from '../domain/actions';
+import { createInitialState } from '../domain/initialState';
+import { genId } from './idGen';
+
+const MILESTONES = [
+  { day: 1, gold: 20, exp: 10 }, { day: 3, gold: 50, exp: 30 },
+  { day: 7, gold: 150, exp: 80 }, { day: 14, gold: 500, exp: 300 },
+];
+
+export interface GameActions {
+  rollover: (now?: Date) => void;
+  checkInDaily: (id: string, now?: Date) => void;
+  checkInWeekly: (id: string, now?: Date) => void;
+  checkInTrial: (id: string, now?: Date) => void;
+  undo: (rid: string, now?: Date) => void;
+  buyFreezeCard: (now?: Date) => void;
+  cashOut: (amount: number, now?: Date) => void;
+  addDaily: (name: string, gold: number, exp: number, icon?: string) => void;
+  editDaily: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string }>) => void;
+  archiveDaily: (id: string) => void;
+  addWeekly: (name: string, gold: number, exp: number, icon?: string) => void;
+  editWeekly: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string }>) => void;
+  archiveWeekly: (id: string) => void;
+  addTrial: (name: string, icon?: string, now?: Date) => void;
+  archiveTrial: (id: string) => void;
+  addBoss: (b: { name: string; icon?: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; linkedTaskIds: string[] }) => void;
+  setConfig: (patch: Partial<Config>) => void;
+  consumeCelebration: () => void;
+  consumeNotice: () => void;
+  importState: (data: AppState) => void;
+  reset: (now?: Date) => void;
+}
+
+export type GameStore = AppState & { actions: GameActions };
+
+type SetFn = (recipe: (s: GameStore) => void) => void;
+type GetFn = () => GameStore;
+
+export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
+  rollover: (now = new Date()) => set((s) => { processRollover(s, now); }),
+  checkInDaily: (id, now = new Date()) => set((s) => { domainCheckInDaily(s, id, now); }),
+  checkInWeekly: (id, now = new Date()) => set((s) => { domainCheckInWeekly(s, id, now); }),
+  checkInTrial: (id, now = new Date()) => set((s) => { domainCheckInTrial(s, id, now); }),
+  undo: (rid, now = new Date()) => set((s) => { undoCheckIn(s, rid, now); }),
+  buyFreezeCard: (now = new Date()) => set((s) => { domainBuyFreezeCard(s, now); }),
+  cashOut: (amount, now = new Date()) => set((s) => { domainCashOut(s, amount, now); }),
+
+  addDaily: (name, gold, exp, icon = '📝') => set((s) => {
+    s.dailies.push({ id: genId('daily'), name, gold, exp, icon, doneDate: null, archived: false });
+  }),
+  editDaily: (id, patch) => set((s) => { const d = s.dailies.find((x) => x.id === id); if (d) Object.assign(d, patch); }),
+  archiveDaily: (id) => set((s) => { const d = s.dailies.find((x) => x.id === id); if (d) d.archived = true; }),
+
+  addWeekly: (name, gold, exp, icon = '📝') => set((s) => {
+    s.weeklies.push({ id: genId('weekly'), name, gold, exp, icon, doneWeek: null, archived: false });
+  }),
+  editWeekly: (id, patch) => set((s) => { const w = s.weeklies.find((x) => x.id === id); if (w) Object.assign(w, patch); }),
+  archiveWeekly: (id) => set((s) => { const w = s.weeklies.find((x) => x.id === id); if (w) w.archived = true; }),
+
+  addTrial: (name, icon = '🎯', now = new Date()) => set((s) => {
+    s.trials.push({ id: genId('trial'), name, icon, startDate: dateStr(now), completedDates: [], protectedDates: [], streak: 0, claimedMilestones: [], graduated: false, milestones: MILESTONES.map((m) => ({ ...m })) });
+  }),
+  archiveTrial: (id) => set((s) => { s.trials = s.trials.filter((t) => t.id !== id); }),
+
+  addBoss: (b) => set((s) => {
+    s.bosses.push({ id: genId('boss'), name: b.name, icon: b.icon ?? '👹', maxHp: b.maxHp, hp: b.maxHp, damagePerHit: b.damagePerHit, totalRewardGold: b.totalRewardGold, totalRewardExp: b.totalRewardExp, weights: [0.2, 0.3, 0.5], linkedTaskIds: b.linkedTaskIds, clearedStages: [], defeated: false });
+  }),
+
+  setConfig: (patch) => set((s) => { Object.assign(s.config, patch); }),
+  consumeCelebration: () => set((s) => { s.pendingCelebrations.shift(); }),
+  consumeNotice: () => set((s) => { s.pendingNotice = null; }),
+  importState: (data) => set((s) => { Object.assign(s, data); }),
+  reset: (now = new Date()) => set((s) => { Object.assign(s, createInitialState(now)); }),
+});
