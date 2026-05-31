@@ -4,10 +4,10 @@ export type WeekKey = string;  // 'YYYY-Www' ISO 周
 export type CelebrationKind = 'levelUp' | 'perfectDay' | 'perfectWeek' | 'graduation' | 'bossDefeated' | 'achievement';
 export type LedgerType = 'earn' | 'penalty' | 'purchase' | 'cashout' | 'bonus' | 'undo';
 
-export interface Daily { id: string; name: string; gold: number; exp: number; icon: string; doneDate: DateStr | null; archived: boolean; }
-export interface Weekly { id: string; name: string; gold: number; exp: number; icon: string; doneWeek: WeekKey | null; archived: boolean; }
+export interface Daily { id: string; name: string; gold: number; exp: number; icon: string; doneDate: DateStr | null; archived: boolean; category?: string; }
+export interface Weekly { id: string; name: string; gold: number; exp: number; icon: string; doneWeek: WeekKey | null; archived: boolean; category?: string; }
 /** 一次性委托：纯奖励待办，无截止无惩罚，不随 rollover 重置；doneDate!==null 即永久完成。 */
-export interface OneOff { id: string; name: string; gold: number; exp: number; icon: string; doneDate: DateStr | null; archived: boolean; }
+export interface OneOff { id: string; name: string; gold: number; exp: number; icon: string; doneDate: DateStr | null; archived: boolean; category?: string; }
 export interface Milestone { day: number; gold: number; exp: number; }
 export interface Trial {
   id: string; name: string; icon: string; startDate: DateStr;

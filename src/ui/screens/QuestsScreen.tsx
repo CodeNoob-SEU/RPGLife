@@ -8,7 +8,7 @@ import { QuestFormModal, QuestKind, QuestDraft } from '../components/QuestFormMo
 import { useGainFloat } from '../components/GainFloat';
 import { haptics } from '../haptics';
 
-type Item = { id: string; name: string; gold: number; exp: number; icon: string };
+type Item = { id: string; name: string; gold: number; exp: number; icon: string; category?: string };
 
 export function QuestsScreen() {
   // Select stable refs, filter in render body (filtering inside the selector → React #185).
@@ -25,11 +25,14 @@ export function QuestsScreen() {
   const doneCount = dailies.filter((d) => d.doneDate === today).length;
   const activeOneoffs = oneoffs.filter((o) => o.doneDate === null);
   const doneOneoffs = oneoffs.filter((o) => o.doneDate !== null);
+  const categories = [...new Set([...dailies, ...weeklies, ...oneoffs].map((t) => t.category).filter(Boolean))] as string[];
 
   const [manage, setManage] = useState(false);
   const [showDone, setShowDone] = useState(false);
   const [form, setForm] = useState<{ kind: QuestKind; editId: string | null; initial: QuestDraft } | null>(null);
   const [del, setDel] = useState<{ kind: QuestKind; id: string; name: string } | null>(null);
+  const [catFilter, setCatFilter] = useState<string | null>(null);
+  const catMatch = (c?: string) => !catFilter || c === catFilter;
 
   const ridFor = (kind: string, id: string) => todayReceipts.find((r) => r.kind === kind && r.taskId === id)?.rid;
   const onUndo = (rid: string) => { haptics.medium(); actions.undo(rid); };
@@ -54,23 +57,23 @@ export function QuestsScreen() {
   };
 
   const DEFAULTS: Record<QuestKind, QuestDraft> = {
-    daily: { name: '', gold: '15', exp: '8', icon: '📝' },
-    weekly: { name: '', gold: '60', exp: '30', icon: '🗓️' },
-    oneoff: { name: '', gold: '40', exp: '20', icon: '📦' },
+    daily: { name: '', gold: '15', exp: '8', icon: '📝', category: '' },
+    weekly: { name: '', gold: '60', exp: '30', icon: '🗓️', category: '' },
+    oneoff: { name: '', gold: '40', exp: '20', icon: '📦', category: '' },
   };
   const openAdd = (kind: QuestKind) => setForm({ kind, editId: null, initial: DEFAULTS[kind] });
-  const openEdit = (kind: QuestKind, it: Item) => setForm({ kind, editId: it.id, initial: { name: it.name, gold: String(it.gold), exp: String(it.exp), icon: it.icon } });
+  const openEdit = (kind: QuestKind, it: Item) => setForm({ kind, editId: it.id, initial: { name: it.name, gold: String(it.gold), exp: String(it.exp), icon: it.icon, category: it.category ?? '' } });
 
-  const saveForm = (vals: { name: string; gold: number; exp: number; icon: string }) => {
+  const saveForm = (vals: { name: string; gold: number; exp: number; icon: string; category?: string }) => {
     if (!form) return;
     const { kind, editId } = form;
     if (editId) {
       if (kind === 'daily') actions.editDaily(editId, vals);
       else if (kind === 'weekly') actions.editWeekly(editId, vals);
       else actions.editOneoff(editId, vals);
-    } else if (kind === 'daily') actions.addDaily(vals.name, vals.gold, vals.exp, vals.icon);
-    else if (kind === 'weekly') actions.addWeekly(vals.name, vals.gold, vals.exp, vals.icon);
-    else actions.addOneoff(vals.name, vals.gold, vals.exp, vals.icon);
+    } else if (kind === 'daily') actions.addDaily(vals.name, vals.gold, vals.exp, vals.icon, vals.category);
+    else if (kind === 'weekly') actions.addWeekly(vals.name, vals.gold, vals.exp, vals.icon, vals.category);
+    else actions.addOneoff(vals.name, vals.gold, vals.exp, vals.icon, vals.category);
     setForm(null);
   };
   const doDelete = () => {
@@ -110,6 +113,15 @@ export function QuestsScreen() {
           </View>
         </PixelPanel>
 
+        {categories.length > 0 ? (
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space(2) }}>
+            <PixelButton label="全部" color={catFilter === null ? colors.gold : colors.bgPanel} onPress={() => setCatFilter(null)} />
+            {categories.map((c) => (
+              <PixelButton key={c} label={c} color={catFilter === c ? colors.gold : colors.bgPanel} onPress={() => setCatFilter(c)} />
+            ))}
+          </View>
+        ) : null}
+
         {renderHeader('每日委托', 'daily')}
         {dailies.length === 0 ? (
           <EmptyState icon="📜" title="还没有每日委托" hint="点「＋ 发布」添加你想每天坚持的小事，打卡赚金币与经验。" />
@@ -118,7 +130,7 @@ export function QuestsScreen() {
             {doneCount}/{dailies.length} 完成{doneCount < dailies.length ? `（再完成 ${dailies.length - doneCount} 个解锁全清奖励）` : '　★ 全清达成'}
           </PixelText>
         )}
-        {dailies.map((d) => {
+        {dailies.filter((d) => catMatch(d.category)).map((d) => {
           const done = d.doneDate === today;
           const rid = ridFor('daily', d.id);
           return (
@@ -136,7 +148,7 @@ export function QuestsScreen() {
 
         {renderHeader('每周委托', 'weekly')}
         {weeklies.length === 0 ? <EmptyState icon="🗓️" title="还没有每周委托" hint="点「＋ 发布」添加每周目标，比如复盘、大扫除。" /> : null}
-        {weeklies.map((w) => {
+        {weeklies.filter((w) => catMatch(w.category)).map((w) => {
           const rid = ridFor('weekly', w.id);
           const done = !!w.doneWeek;
           return (
@@ -156,7 +168,7 @@ export function QuestsScreen() {
         {activeOneoffs.length === 0 && doneOneoffs.length === 0 ? (
           <EmptyState icon="📦" title="还没有一次性委托" hint="一次性的小目标放这里：完成即得奖励，无截止、不惩罚。" />
         ) : null}
-        {activeOneoffs.map((o) => {
+        {activeOneoffs.filter((o) => catMatch(o.category)).map((o) => {
           const rid = ridFor('oneoff', o.id);
           return (
             <PixelPanel key={o.id}>
@@ -174,7 +186,7 @@ export function QuestsScreen() {
           <PixelButton label={`${showDone ? '▼' : '▶'} 已完成（${doneOneoffs.length}）`} color={colors.bgPanel} onPress={() => setShowDone((v) => !v)} />
         ) : null}
         {showDone
-          ? doneOneoffs.map((o) => (
+          ? doneOneoffs.filter((o) => catMatch(o.category)).map((o) => (
               <PixelPanel key={o.id} style={{ opacity: 0.7 }}>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
                   <PixelText style={{ fontSize: 18 }}>{o.icon}</PixelText>
@@ -190,7 +202,7 @@ export function QuestsScreen() {
         visible={!!form}
         kind={form?.kind ?? 'daily'}
         editing={!!form?.editId}
-        initial={form?.initial ?? { name: '', gold: '', exp: '', icon: '' }}
+        initial={form?.initial ?? { name: '', gold: '', exp: '', icon: '', category: '' }}
         onCancel={() => setForm(null)}
         onSave={saveForm}
       />

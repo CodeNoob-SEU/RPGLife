@@ -32,17 +32,17 @@ export interface GameActions {
   buyFreezeCard: (now?: Date) => void;
   cashOut: (amount: number, now?: Date) => void;
   openDailyChest: (now?: Date) => void;
-  addDaily: (name: string, gold: number, exp: number, icon?: string) => void;
-  editDaily: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string }>) => void;
+  addDaily: (name: string, gold: number, exp: number, icon?: string, category?: string) => void;
+  editDaily: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string; category: string }>) => void;
   archiveDaily: (id: string) => void;
-  addWeekly: (name: string, gold: number, exp: number, icon?: string) => void;
-  editWeekly: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string }>) => void;
+  addWeekly: (name: string, gold: number, exp: number, icon?: string, category?: string) => void;
+  editWeekly: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string; category: string }>) => void;
   archiveWeekly: (id: string) => void;
   addTrial: (name: string, icon?: string, now?: Date) => void;
   editTrial: (id: string, patch: Partial<{ name: string; icon: string }>) => void;
   archiveTrial: (id: string) => void;
-  addOneoff: (name: string, gold: number, exp: number, icon?: string) => void;
-  editOneoff: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string }>) => void;
+  addOneoff: (name: string, gold: number, exp: number, icon?: string, category?: string) => void;
+  editOneoff: (id: string, patch: Partial<{ name: string; gold: number; exp: number; icon: string; category: string }>) => void;
   archiveOneoff: (id: string) => void;
   addBoss: (b: { name: string; icon?: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; linkedTaskIds: string[]; weights?: [number, number, number] }) => void;
   editBoss: (id: string, patch: Partial<{ name: string; icon: string; maxHp: number; damagePerHit: number; totalRewardGold: number; totalRewardExp: number; weights: [number, number, number]; linkedTaskIds: string[] }>) => void;
@@ -73,14 +73,14 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   cashOut: (amount, now = new Date()) => set((s) => { domainCashOut(s, amount, now); evaluateAchievements(s, now); }),
   openDailyChest: (now = new Date()) => set((s) => { domainOpenDailyChest(s, now, Math.random()); evaluateAchievements(s, now); }),
 
-  addDaily: (name, gold, exp, icon = '📝') => set((s) => {
-    s.dailies.push({ id: genId('daily'), name, gold, exp, icon, doneDate: null, archived: false });
+  addDaily: (name, gold, exp, icon = '📝', category) => set((s) => {
+    s.dailies.push({ id: genId('daily'), name, gold, exp, icon, doneDate: null, archived: false, category });
   }),
   editDaily: (id, patch) => set((s) => { const d = s.dailies.find((x) => x.id === id); if (d) Object.assign(d, patch); }),
   archiveDaily: (id) => set((s) => { const d = s.dailies.find((x) => x.id === id); if (d) d.archived = true; }),
 
-  addWeekly: (name, gold, exp, icon = '📝') => set((s) => {
-    s.weeklies.push({ id: genId('weekly'), name, gold, exp, icon, doneWeek: null, archived: false });
+  addWeekly: (name, gold, exp, icon = '📝', category) => set((s) => {
+    s.weeklies.push({ id: genId('weekly'), name, gold, exp, icon, doneWeek: null, archived: false, category });
   }),
   editWeekly: (id, patch) => set((s) => { const w = s.weeklies.find((x) => x.id === id); if (w) Object.assign(w, patch); }),
   archiveWeekly: (id) => set((s) => { const w = s.weeklies.find((x) => x.id === id); if (w) w.archived = true; }),
@@ -91,8 +91,8 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   editTrial: (id, patch) => set((s) => { const t = s.trials.find((x) => x.id === id); if (t) Object.assign(t, patch); }),
   archiveTrial: (id) => set((s) => { const t = s.trials.find((x) => x.id === id); if (t) t.archived = true; }),
 
-  addOneoff: (name, gold, exp, icon = '📦') => set((s) => {
-    s.oneoffs.push({ id: genId('oneoff'), name, gold, exp, icon, doneDate: null, archived: false });
+  addOneoff: (name, gold, exp, icon = '📦', category) => set((s) => {
+    s.oneoffs.push({ id: genId('oneoff'), name, gold, exp, icon, doneDate: null, archived: false, category });
   }),
   editOneoff: (id, patch) => set((s) => { const o = s.oneoffs.find((x) => x.id === id); if (o) Object.assign(o, patch); }),
   archiveOneoff: (id) => set((s) => { const o = s.oneoffs.find((x) => x.id === id); if (o) o.archived = true; }),
