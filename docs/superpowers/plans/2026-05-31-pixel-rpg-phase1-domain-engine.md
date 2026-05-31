@@ -1278,7 +1278,7 @@ test('linked task completion damages boss', () => {
 
 test('crossing stage 1 threshold grants stage-1 reward', () => {
   const s = makeState();
-  s.dailies = [day('a')];
+  s.dailies = [day('a'), day('keep')]; // 2nd incomplete, non-linked daily prevents perfect-day bonus from skewing gold
   s.bosses = [boss({ hp: 80 })];
   checkInDaily(s, 'a', now); // hp 60 <= 66.67 -> stage 1
   expect(s.bosses[0].clearedStages).toEqual([1]);
@@ -1287,7 +1287,7 @@ test('crossing stage 1 threshold grants stage-1 reward', () => {
 
 test('one hit can cross multiple stages', () => {
   const s = makeState();
-  s.dailies = [day('a')];
+  s.dailies = [day('a'), day('keep')]; // 2nd incomplete, non-linked daily prevents perfect-day bonus from skewing gold
   s.bosses = [boss({ hp: 40, damagePerHit: 40 })]; // -> hp 0: stages 1,2,3 + defeat
   checkInDaily(s, 'a', now);
   expect(s.bosses[0].clearedStages).toEqual([1, 2, 3]);
