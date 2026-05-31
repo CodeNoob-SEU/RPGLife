@@ -4,7 +4,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { dateStr } from '../../domain/dateUtils';
 import { Trial } from '../../domain/types';
 import { colors, space } from '../theme';
-import { PixelPanel, PixelButton, PixelText, PixelProgressBar, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle } from '../components/Pixel';
+import { PixelPanel, PixelButton, PixelText, PixelProgressBar, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle, EmptyState } from '../components/Pixel';
 import { useGainFloat } from '../components/GainFloat';
 import { haptics } from '../haptics';
 
@@ -46,7 +46,14 @@ export function TrialsScreen() {
           <PixelButton label="＋ 开启新试炼" onPress={() => { setNewName(''); setAdding(true); }} />
         </View>
 
-        {active.length === 0 ? <PixelText style={{ color: colors.ink }}>暂无进行中的试炼。</PixelText> : null}
+        {active.length === 0 ? (
+          <EmptyState
+            icon="🎯"
+            title="还没有进行中的试炼"
+            hint="开启一个多日试炼，连续打卡解锁 D1/3/7/14 里程碑，连满 14 天即可毕业转为每日委托。"
+            cta={<PixelButton label="＋ 开启新试炼" color={colors.success} onPress={() => { setNewName(''); setAdding(true); }} />}
+          />
+        ) : null}
 
         {active.map((t) => {
           const done = t.completedDates.includes(today);

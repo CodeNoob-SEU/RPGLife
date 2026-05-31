@@ -67,6 +67,30 @@ export function SectionTitle({ children, style }: { children: React.ReactNode; s
   );
 }
 
+/** 空状态：像素图标 + 鼓励标题 + 提示 + 可选 CTA。把"暂无数据"变成可教学的引导。 */
+export function EmptyState({ icon, title, hint, cta }: { icon: string; title: string; hint?: string; cta?: React.ReactNode }) {
+  return (
+    <View style={{ alignItems: 'center', paddingVertical: space(8), gap: space(2) }}>
+      <Text style={{ fontSize: 44 }}>{icon}</Text>
+      <PixelText style={{ color: colors.ink, fontWeight: 'bold', fontSize: 15, textAlign: 'center' }}>{title}</PixelText>
+      {hint ? <PixelText style={{ color: colors.textDim, textAlign: 'center', fontSize: 12, maxWidth: 320 }}>{hint}</PixelText> : null}
+      {cta ? <View style={{ marginTop: space(2) }}>{cta}</View> : null}
+    </View>
+  );
+}
+
+/** 像素开关（布尔）：点击切换，旋钮左右滑，开=success 底。 */
+export function PixelToggle({ value, onValueChange, label }: { value: boolean; onValueChange: (v: boolean) => void; label: string }) {
+  return (
+    <Pressable onPress={() => onValueChange(!value)} style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
+      <PixelText style={{ color: colors.ink, flex: 1, fontSize: 13 }}>{label}</PixelText>
+      <View style={[{ width: space(14), height: space(7), backgroundColor: value ? colors.success : colors.bgDeep, justifyContent: 'center', paddingHorizontal: 3 }, pixelBorder]}>
+        <View style={{ width: space(5), height: space(5), backgroundColor: value ? colors.ink : colors.textDim, alignSelf: value ? 'flex-end' : 'flex-start' }} />
+      </View>
+    </Pressable>
+  );
+}
+
 /** 像素输入框（深底 + 硬边）。numeric 时 keyboardType=numeric。 */
 export function PixelTextInput({
   value, onChangeText, placeholder, numeric, multiline, style,

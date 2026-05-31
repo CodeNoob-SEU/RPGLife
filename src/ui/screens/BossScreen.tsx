@@ -3,7 +3,7 @@ import { ScrollView, View } from 'react-native';
 import { useGameStore } from '../../store/useGameStore';
 import { Boss } from '../../domain/types';
 import { colors, space } from '../theme';
-import { PixelButton, PixelText, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle } from '../components/Pixel';
+import { PixelButton, PixelText, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle, EmptyState } from '../components/Pixel';
 import { BossCard } from '../components/BossCard';
 
 type Draft = {
@@ -65,7 +65,14 @@ export function BossScreen() {
         <PixelButton label="＋ 新建 Boss" onPress={openNew} />
       </View>
 
-      {active.length === 0 ? <PixelText style={{ color: colors.ink }}>暂无 Boss。</PixelText> : null}
+      {active.length === 0 ? (
+        <EmptyState
+          icon="👹"
+          title="暂无讨伐目标"
+          hint="把一个大目标做成 Boss，用关联任务的每次打卡削减它的 HP，分三阶段领取奖励。"
+          cta={<PixelButton label="＋ 新建 Boss" color={colors.success} onPress={openNew} />}
+        />
+      ) : null}
 
       {active.map((b) => (
         <BossCard key={b.id} boss={b} nameOf={nameOf} onEdit={() => openEdit(b)} onArchive={() => setArchiving(b)} />

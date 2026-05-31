@@ -2,7 +2,7 @@ import { ScrollView, View } from 'react-native';
 import { useGameStore } from '../../store/useGameStore';
 import { dateStr } from '../../domain/dateUtils';
 import { colors, space } from '../theme';
-import { PixelPanel, PixelButton, PixelText, SectionTitle } from '../components/Pixel';
+import { PixelPanel, PixelButton, PixelText, SectionTitle, EmptyState } from '../components/Pixel';
 import { useGainFloat } from '../components/GainFloat';
 import { haptics } from '../haptics';
 
@@ -34,9 +34,13 @@ export function QuestsScreen() {
       {floatNode}
       <ScrollView style={{ flex: 1, backgroundColor: colors.bgDeep }} contentContainerStyle={{ padding: space(3), gap: space(3) }}>
         <SectionTitle>每日委托</SectionTitle>
-        <PixelText style={{ color: colors.ink }}>
-          {doneCount}/{dailies.length} 完成{doneCount < dailies.length ? `（再完成 ${dailies.length - doneCount} 个解锁全清奖励）` : '　★ 全清达成'}
-        </PixelText>
+        {dailies.length === 0 ? (
+          <EmptyState icon="📜" title="还没有每日委托" hint="添加你想每天坚持的小事，打卡即可赚取金币与经验，全部完成还有全清奖励。" />
+        ) : (
+          <PixelText style={{ color: colors.ink }}>
+            {doneCount}/{dailies.length} 完成{doneCount < dailies.length ? `（再完成 ${dailies.length - doneCount} 个解锁全清奖励）` : '　★ 全清达成'}
+          </PixelText>
+        )}
         {dailies.map((d) => {
           const done = d.doneDate === today;
           const rid = ridFor('daily', d.id);
@@ -54,6 +58,9 @@ export function QuestsScreen() {
         })}
 
         <SectionTitle style={{ marginTop: space(2) }}>每周委托</SectionTitle>
+        {weeklies.length === 0 ? (
+          <EmptyState icon="🗓️" title="还没有每周委托" hint="把每周坚持的目标放这里，比如复盘本周、大扫除。" />
+        ) : null}
         {weeklies.map((w) => {
           const rid = ridFor('weekly', w.id);
           const done = !!w.doneWeek;

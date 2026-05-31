@@ -4,7 +4,7 @@ import { useGameStore } from '../../store/useGameStore';
 import { Config } from '../../domain/types';
 import { CURRENT_VERSION } from '../../domain/version';
 import { colors, space } from '../theme';
-import { PixelPanel, PixelButton, PixelText, PixelTextInput, ConfirmDialog, SectionTitle } from '../components/Pixel';
+import { PixelPanel, PixelButton, PixelText, PixelTextInput, ConfirmDialog, SectionTitle, PixelToggle } from '../components/Pixel';
 
 const FIELDS: Array<{ key: keyof Config; label: string }> = [
   { key: 'goldToYuanRate', label: '金币兑换率（X 金 = ¥1）' },
@@ -75,6 +75,15 @@ export function SettingsScreen() {
             </View>
           ))}
           <PixelButton label="保存配置" color={colors.success} onPress={saveConfig} />
+        </View>
+      </PixelPanel>
+
+      <SectionTitle>偏好设置</SectionTitle>
+      <PixelPanel>
+        <View style={{ gap: space(3) }}>
+          <PixelToggle label="减弱动效（关闭抖动 / 纸屑 / 浮动；照顾低端机与无障碍）" value={config.reduceMotion} onValueChange={(v) => actions.setConfig({ reduceMotion: v })} />
+          <PixelToggle label="音效" value={config.soundEnabled} onValueChange={(v) => actions.setConfig({ soundEnabled: v })} />
+          <PixelToggle label="触感反馈（震动）" value={config.hapticsEnabled} onValueChange={(v) => actions.setConfig({ hapticsEnabled: v })} />
         </View>
       </PixelPanel>
 
