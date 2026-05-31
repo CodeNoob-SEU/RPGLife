@@ -33,11 +33,14 @@ export function SettingsScreen() {
   const [importMsg, setImportMsg] = useState('');
   const [resetting, setResetting] = useState(false);
 
+  // 关键字段下限：兑换率/升级基数 ≥1（防除零/Infinity），其余经济数值 ≥0。
+  const MIN_ONE = new Set(['goldToYuanRate', 'levelExpBase']);
   const saveConfig = () => {
     const patch: Partial<Config> = {};
     for (const f of FIELDS) {
       const n = Number(draft[f.key]);
-      if (!Number.isNaN(n)) (patch as any)[f.key] = n;
+      if (!Number.isFinite(n)) continue;
+      (patch as any)[f.key] = Math.max(MIN_ONE.has(f.key as string) ? 1 : 0, n);
     }
     actions.setConfig(patch);
   };

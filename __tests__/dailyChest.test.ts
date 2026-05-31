@@ -1,6 +1,6 @@
 import { makeState } from './factory';
 import { openDailyChest } from '../src/domain/actions';
-import { addGold, applyExpDelta } from '../src/domain/economy';
+import { addGold, applyExpDelta, expNeeded } from '../src/domain/economy';
 
 const NOW = new Date(2026, 5, 1);
 
@@ -47,6 +47,16 @@ test('config 缺失宝箱区间时用默认值兜底（绝不产生 NaN）', () 
   expect(reward).toBe(10);
   expect(Number.isFinite(s.player.gold)).toBe(true);
   expect(s.player.gold).toBe(10);
+});
+
+test('expNeeded 下限为 1：levelExpBase/Step=0 不致 expNeeded=0 → applyExpDelta 死循环', () => {
+  const s = makeState();
+  s.config.levelExpBase = 0;
+  s.config.levelExpStep = 0;
+  expect(expNeeded(1, s.config)).toBeGreaterThanOrEqual(1);
+  applyExpDelta(s, 5); // 必须终止（否则测试超时即视为失败）
+  expect(Number.isFinite(s.player.exp)).toBe(true);
+  expect(s.player.level).toBeGreaterThanOrEqual(1);
 });
 
 test('addGold / applyExpDelta 拒绝非有限值（防 NaN 污染金币与经验）', () => {

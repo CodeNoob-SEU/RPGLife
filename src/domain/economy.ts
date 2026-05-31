@@ -2,7 +2,8 @@ import { AppState, Config, CelebrationKind, LedgerType } from './types';
 import { dateStr } from './dateUtils';
 
 export function expNeeded(level: number, config: Config): number {
-  return config.levelExpBase + (level - 1) * config.levelExpStep;
+  // 下限 1：防止用户把 levelExpBase/Step 配成 0 → expNeeded=0 → applyExpDelta 升级循环死锁。
+  return Math.max(1, config.levelExpBase + (level - 1) * config.levelExpStep);
 }
 
 export function computeAvatarTier(level: number): number {
