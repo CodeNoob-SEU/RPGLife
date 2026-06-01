@@ -57,3 +57,14 @@ test('ping returns ok on success and not-ok on failure', async () => {
   expect(r.ok).toBe(false);
   expect(typeof r.detail).toBe('string');
 });
+
+test('malformed JSON envelope maps to LLMError(http), not a raw SyntaxError', async () => {
+  (global as any).fetch = jest.fn().mockResolvedValue({
+    ok: true,
+    status: 200,
+    text: async () => '',
+    json: async () => { throw new SyntaxError('Unexpected token < in JSON'); },
+  });
+  const c = new OpenAICompatClient(cfg);
+  await expect(c.generateText([{ role: 'user', content: 'x' }])).rejects.toMatchObject({ kind: 'http' });
+});

@@ -32,6 +32,8 @@ export class OpenAICompatClient implements LLMClient {
         signal: controller.signal,
       });
     } catch (e) {
+      // 当前无 caller 传 opts.signal；将来若支持用户主动取消，需在此区分
+      // opts.signal.aborted（caller 取消）与超时计时器触发，避免把取消误报为 timeout。
       throw new LLMError(controller.signal.aborted ? 'timeout' : 'network', String(e));
     } finally {
       clearTimeout(timer);
@@ -42,7 +44,12 @@ export class OpenAICompatClient implements LLMClient {
       const body = await res.text().catch(() => '');
       throw new LLMError('http', `HTTP ${res.status}: ${body.slice(0, 200)}`);
     }
-    const data: any = await res.json();
+    let data: any;
+    try {
+      data = await res.json();
+    } catch (e) {
+      throw new LLMError('http', `响应不是合法 JSON：${String(e)}`);
+    }
     return data?.choices?.[0]?.message?.content ?? '';
   }
 
