@@ -12,6 +12,7 @@ export const defaultConfig: Config = {
   reduceMotion: false, soundEnabled: true, hapticsEnabled: true,
   dailyChestMin: 10, dailyChestMax: 60,
   reminderEnabled: false, reminderHour: 20,
+  llmEnabled: false, llmBaseURL: '', llmModel: '',
 };
 
 const defaultMilestones: Milestone[] = [

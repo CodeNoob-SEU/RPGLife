@@ -11,6 +11,7 @@ export const testConfig: Config = {
   reduceMotion: false, soundEnabled: true, hapticsEnabled: true,
   dailyChestMin: 10, dailyChestMax: 60,
   reminderEnabled: false, reminderHour: 20,
+  llmEnabled: false, llmBaseURL: '', llmModel: '',
 };
 
 /** 构造一个干净的空 state（无任务），供单测自由填充。 */

@@ -39,3 +39,17 @@ test('migrate tolerates persisted trials/bosses lacking the new archived field',
   expect(result.trials[0].archived ?? false).toBe(false);
   expect(result.bosses[0].archived ?? false).toBe(false);
 });
+
+test('migrate backfills v12 llm config defaults and stamps version 12', () => {
+  const r = migrate({ version: 11 } as any, 11);
+  expect(r.version).toBe(12);
+  expect(r.config.llmEnabled).toBe(false);
+  expect(r.config.llmBaseURL).toBe('');
+  expect(r.config.llmModel).toBe('');
+});
+
+test('migrate preserves a persisted llmBaseURL', () => {
+  const r = migrate({ version: 12, config: { llmBaseURL: 'https://api.deepseek.com/v1' } } as any, 12);
+  expect(r.config.llmBaseURL).toBe('https://api.deepseek.com/v1');
+  expect(r.config.llmEnabled).toBe(false); // 缺失键仍取默认
+});
