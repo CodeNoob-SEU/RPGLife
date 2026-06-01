@@ -37,7 +37,9 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "test": "jest"
+    "test": "jest",
+    "build:android": "bash scripts/build-android.sh preview",
+    "build:android:prod": "bash scripts/build-android.sh production"
   },
   "private": true
 }

@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": ".expo-init",
-    "slug": ".expo-init",
+    "name": "RPGLife",
+    "slug": "rpglife",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -10,6 +10,8 @@
       "supportsTablet": true
     },
     "android": {
+      "package": "com.codenoob.rpglife",
+      "versionCode": 1,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -20,6 +22,12 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "16771102-b660-4550-88ac-28471ac3fcd2"
+      }
+    },
+    "owner": "sharkyovo"
   }
 }
