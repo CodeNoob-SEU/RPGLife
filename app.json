@@ -28,6 +28,9 @@
         "projectId": "16771102-b660-4550-88ac-28471ac3fcd2"
       }
     },
-    "owner": "sharkyovo"
+    "owner": "sharkyovo",
+    "plugins": [
+      "expo-secure-store"
+    ]
   }
 }
