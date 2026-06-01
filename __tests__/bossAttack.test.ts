@@ -56,6 +56,21 @@ test('已击杀 / 已归档 / 不存在的 Boss 攻击无效', () => {
   expect(s3.todayReceipts).toHaveLength(0);
 });
 
+test('同日多次 attackBoss：每条 receipt 的 rid 各不相同（F1：可逐次撤销）', () => {
+  const s = makeState({ bosses: [boss({ maxHp: 1000, hp: 1000 })] });
+  attackBoss(s, 'b1', 10, now);
+  attackBoss(s, 'b1', 10, now);
+  attackBoss(s, 'b1', 10, now);
+  expect(s.todayReceipts).toHaveLength(3);
+  const rids = s.todayReceipts.map((r) => r.rid);
+  expect(new Set(rids).size).toBe(3); // 三条 rid 互不相同
+  // 逐条撤销，每次精确回血 10
+  undoCheckIn(s, rids[2], now); expect(s.bosses[0].hp).toBe(980);
+  undoCheckIn(s, rids[1], now); expect(s.bosses[0].hp).toBe(990);
+  undoCheckIn(s, rids[0], now); expect(s.bosses[0].hp).toBe(1000);
+  expect(s.todayReceipts).toHaveLength(0);
+});
+
 test('撤销 boss 攻击：回血 + 取消阶段 + 取消击杀 + 退还奖励', () => {
   const s = makeState({ bosses: [boss({ hp: 30 })] });
   attackBoss(s, 'b1', 999, now);

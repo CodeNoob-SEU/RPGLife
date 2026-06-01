@@ -14,7 +14,7 @@ test('checkInDaily marks done, adds gold/exp, pushes receipt', () => {
   expect(s.player.gold).toBe(30);
   expect(s.player.level).toBe(2); // 60 exp -> L2 (needs 50), exp 10
   expect(s.todayReceipts).toHaveLength(1);
-  expect(s.todayReceipts[0]).toMatchObject({ rid: 'daily:a:2026-06-01', goldDelta: 30, expDelta: 60 });
+  expect(s.todayReceipts[0]).toMatchObject({ rid: 'daily:a:2026-06-01:0', goldDelta: 30, expDelta: 60 });
 });
 
 test('checkInDaily is idempotent same day', () => {

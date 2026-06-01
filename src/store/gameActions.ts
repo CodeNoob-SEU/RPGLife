@@ -74,7 +74,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   checkInTrial: (id, now = new Date()) => set((s) => { domainCheckInTrial(s, id, now); evaluateAchievements(s, now); }),
   checkInOneoff: (id, now = new Date()) => set((s) => { domainCheckInOneoff(s, id, now); evaluateAchievements(s, now); }),
   undo: (rid, now = new Date()) => set((s) => { undoCheckIn(s, rid, now); }),
-  buyFreezeCard: (now = new Date()) => set((s) => { domainBuyFreezeCard(s, now); }),
+  buyFreezeCard: (now = new Date()) => set((s) => { domainBuyFreezeCard(s, now); evaluateAchievements(s, now); }),
   cashOut: (amount, now = new Date()) => set((s) => { domainCashOut(s, amount, now); evaluateAchievements(s, now); }),
   openDailyChest: (now = new Date()) => set((s) => { domainOpenDailyChest(s, now, Math.random()); evaluateAchievements(s, now); }),
 
@@ -102,7 +102,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   editOneoff: (id, patch) => set((s) => { const o = s.oneoffs.find((x) => x.id === id); if (o) Object.assign(o, patch); }),
   archiveOneoff: (id) => set((s) => { const o = s.oneoffs.find((x) => x.id === id); if (o) o.archived = true; }),
 
-  slipAnti: (id, now = new Date()) => set((s) => { domainSlipAnti(s, id, now); }),
+  slipAnti: (id, now = new Date()) => set((s) => { domainSlipAnti(s, id, now); evaluateAchievements(s, now); }),
   addAnti: (name, penalty, icon = '📵') => set((s) => { s.antis.push({ id: genId('anti'), name, icon, penalty, archived: false }); }),
   editAnti: (id, patch) => set((s) => { const a = s.antis.find((x) => x.id === id); if (a) Object.assign(a, patch); }),
   archiveAnti: (id) => set((s) => { const a = s.antis.find((x) => x.id === id); if (a) a.archived = true; }),

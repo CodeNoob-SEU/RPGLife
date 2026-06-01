@@ -27,3 +27,13 @@ test('cashOut requires threshold and sufficient balance', () => {
   expect(s.player.gold).toBe(200);
   expect(s.ledger.find((l) => l.type === 'cashout')).toMatchObject({ amount: -1000 });
 });
+
+test('F2: goldToYuanRate=0 时 cashOut ledger note 不含 Infinity/NaN', () => {
+  const s = makeState();
+  s.player.gold = 1500;
+  s.config.goldToYuanRate = 0; // 异常配置（仅可能从导入存档进入；UI 已钳制 ≥1）
+  expect(cashOut(s, 1000, now)).toBe(true);
+  const note = s.ledger.find((l) => l.type === 'cashout')!.note;
+  expect(note).not.toMatch(/Infinity|NaN/);
+  expect(s.player.gold).toBe(500);
+});

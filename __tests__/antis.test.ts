@@ -40,3 +40,15 @@ test('禁忌不发经验、不影响等级', () => {
   expect(s.player.exp).toBe(0);
   expect(s.player.level).toBe(1);
 });
+
+test('同日多次 slipAnti：每条 receipt 的 rid 各不相同（F1：可逐次撤销）', () => {
+  const s = makeState({ antis: [anti({ penalty: 10 })], player: withGold(100) });
+  slipAnti(s, 'a1', NOW);
+  slipAnti(s, 'a1', NOW);
+  expect(s.todayReceipts).toHaveLength(2);
+  const rids = s.todayReceipts.map((r) => r.rid);
+  expect(new Set(rids).size).toBe(2);
+  expect(s.player.gold).toBe(80);
+  undoCheckIn(s, rids[1], NOW); expect(s.player.gold).toBe(90);
+  undoCheckIn(s, rids[0], NOW); expect(s.player.gold).toBe(100);
+});

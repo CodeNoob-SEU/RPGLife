@@ -21,7 +21,8 @@ Phase 1：Plan 1/2 已**合并入 `main`**；Plan 3 已完成（在分支 `feat/
 - **Plan 4 收尾**：一次性委托 `oneoffs`（领域+UI，不触发全清/不联动 Boss/不进 rollover）；委托增删改 UI（`QuestFormModal` 共享表单 + 管理模式 + 删除二确）；Boss 手动攻击（`attackBoss` + 抽 `applyBossHit`；修过量击杀撤销溢出 bug）。
 - **数据与成就**：`src/domain/stats.ts`（bestTrialStreak/currentDayStreak/completionRate/heatmapCells/goldTrend/lifetimeTotals，TDD）；新增第 6 Tab「数据」`DataScreen`（年度像素热力图+连续记录+完成率+累计+成就墙）；`src/domain/achievements.ts`（12 白帽成就 + `evaluateAchievements`，在 checkin/attack/cashout/rollover 后评估，推 `'achievement'` 庆祝）。
 - **留存/引导**：每日宝箱 `openDailyChest`（随机金币区间）；首启 `Onboarding`（4 屏像素向导，`onboarded` 标记）；晨间 `MorningReport`（昨日战报，`reportSeenDate` 每日一次）。
-- **健壮性**：`addGold`/`applyExpDelta` 拒绝非有限值（NaN 绝不污染金币/经验并持久化）；`openDailyChest` config 兜底。引入 `src/domain/version.ts` 的 `CURRENT_VERSION`，**persist v1→v7**（每加持久化字段 +1；`migrate` 穷举深填，旧档安全升级；导入校验放宽至 `version ≤ 当前`）。
+- **健壮性**：`addGold`/`applyExpDelta` 拒绝非有限值（NaN 绝不污染金币/经验并持久化）；`openDailyChest` config 兜底；`cashOut` 内 rate 钳 ≥1（防异常导入致 note 出现 Infinity）；receipt rid 加序号 disambiguator（同日多次 attackBoss/slipAnti 不再 rid 冲突，撤销可逐次精确生效）；所有 mutating action（含 buyFreezeCard / slipAnti）后均调 `evaluateAchievements` 保持对称。引入 `src/domain/version.ts` 的 `CURRENT_VERSION`，**persist v1→v10**（每加持久化字段 +1；`migrate` 穷举深填，旧档安全升级；导入校验放宽至 `version ≤ 当前`）。
+- **设计决策（明示）**：成就解锁后即使撤销触发它的打卡也不会反向上锁——`evaluateAchievements` 是只增、幂等的，符合"既得荣誉不应失去"的产品哲学。撤销仍会精确回退金币/经验/Boss/全清/等级，但成就墙保留高亮。
 
 **验证基线（更新）**：`npm test` → **119 passed（22 套件）**；`npx tsc --noEmit` → clean；expo-web 实测打卡/撤销、全清+升级庆祝、HUD、BossCard、委托 CRUD/一次性、Boss 手动攻击(−damage 精确)、数据页(热力图/成就墙 2/12)、每日宝箱(0→区间内无 NaN)、首启引导→主屏、昨日战报弹出/消费——均通过。
 ⚠️ **预览环境局限（非产品缺陷）**：reanimated 完成回调在无头预览偶不触发 → 庆祝可能"卡住"并被持久化（真机正常，已知）；reload 后 react-navigation Tab 锚点首点偶尔丢失（重点一次或重启预览实例即可）；`preview_screenshot` 偶发 `UnknownVizError`/滞后帧 → 用 `preview_snapshot`/`preview_eval` DOM 核验更可靠。

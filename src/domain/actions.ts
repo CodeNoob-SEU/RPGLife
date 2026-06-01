@@ -3,8 +3,13 @@ import { dateStr, weekKey, weekKeyStr } from './dateUtils';
 import { addGold, applyExpDelta, pushCelebration } from './economy';
 import { computeStreak } from './trials';
 
-function newReceipt(kind: Receipt['kind'], taskId: string, date: string): Receipt {
-  return { rid: `${kind}:${taskId}:${date}`, kind, taskId, date, goldDelta: 0, expDelta: 0 };
+/**
+ * 创建回执；rid 用 todayReceipts.length 作 disambiguator（同日同对象多次操作如 attackBoss/slipAnti
+ * 不致 rid 冲突，避免 undoCheckIn 只命中第一条的潜在 bug）。daily/weekly/trial/oneoff 有"已完成"
+ * 字段防同日重复，序号始终对应该 receipt 的入栈索引，全局唯一。
+ */
+function newReceipt(kind: Receipt['kind'], taskId: string, date: string, seq: number): Receipt {
+  return { rid: `${kind}:${taskId}:${date}:${seq}`, kind, taskId, date, goldDelta: 0, expDelta: 0 };
 }
 
 /** addGold + 计入 receipt.goldDelta。 */
@@ -65,7 +70,7 @@ export function attackBoss(state: AppState, bossId: string, damage: number, now:
   const b = state.bosses.find((x) => x.id === bossId);
   if (!b || b.defeated || b.archived) return;
   const dmg = Math.max(1, Math.floor(damage));
-  const r = newReceipt('boss', bossId, dateStr(now));
+  const r = newReceipt('boss', bossId, dateStr(now), state.todayReceipts.length);
   applyBossHit(state, r, b, dmg, now);
   state.todayReceipts.push(r);
 }
@@ -74,7 +79,7 @@ export function checkInDaily(state: AppState, id: string, now: Date): void {
   const today = dateStr(now);
   const d = state.dailies.find((x) => x.id === id);
   if (!d || d.archived || d.doneDate === today) return;
-  const r = newReceipt('daily', id, today);
+  const r = newReceipt('daily', id, today, state.todayReceipts.length);
   d.doneDate = today;
   addGoldR(state, r, d.gold, 'earn', `完成每日: ${d.name}`, now);
   addExpR(state, r, d.exp);
@@ -93,7 +98,7 @@ export function checkInWeekly(state: AppState, id: string, now: Date): void {
   const week = weekKey(now);
   const w = state.weeklies.find((x) => x.id === id);
   if (!w || w.archived || w.doneWeek === week) return;
-  const r = newReceipt('weekly', id, today);
+  const r = newReceipt('weekly', id, today, state.todayReceipts.length);
   w.doneWeek = week;
   addGoldR(state, r, w.gold, 'earn', `完成每周: ${w.name}`, now);
   addExpR(state, r, w.exp);
@@ -112,7 +117,7 @@ export function checkInOneoff(state: AppState, id: string, now: Date): void {
   const today = dateStr(now);
   const o = state.oneoffs.find((x) => x.id === id);
   if (!o || o.archived || o.doneDate !== null) return; // doneDate!==null 即永久完成
-  const r = newReceipt('oneoff', id, today);
+  const r = newReceipt('oneoff', id, today, state.todayReceipts.length);
   o.doneDate = today;
   addGoldR(state, r, o.gold, 'earn', `完成委托: ${o.name}`, now);
   addExpR(state, r, o.exp);
@@ -130,7 +135,7 @@ export function checkInTrial(state: AppState, id: string, now: Date): void {
   const today = dateStr(now);
   const t = state.trials.find((x) => x.id === id);
   if (!t || t.archived || t.graduated || t.completedDates.includes(today)) return;
-  const r = newReceipt('trial', id, today);
+  const r = newReceipt('trial', id, today, state.todayReceipts.length);
   t.completedDates.push(today);
   t.streak = computeStreak(t, today);
   const claimed: number[] = [];
@@ -227,7 +232,9 @@ export function buyFreezeCard(state: AppState, now: Date): boolean {
 export function cashOut(state: AppState, amount: number, now: Date): boolean {
   if (amount < state.config.cashOutThreshold || amount > state.player.gold) return false;
   state.player.gold -= amount;
-  state.ledger.push({ ts: now.getTime(), date: dateStr(now), type: 'cashout', amount: -amount, note: `提现 ${amount}金 = ¥${amount / state.config.goldToYuanRate}` });
+  // 防御：rate=0（异常导入）不让 note 出现 Infinity/NaN（设置 UI 已钳制 ≥1，这是兜底）。
+  const rate = Math.max(1, state.config.goldToYuanRate);
+  state.ledger.push({ ts: now.getTime(), date: dateStr(now), type: 'cashout', amount: -amount, note: `提现 ${amount}金 = ¥${amount / rate}` });
   return true;
 }
 
@@ -236,7 +243,7 @@ export function slipAnti(state: AppState, id: string, now: Date): void {
   const a = state.antis.find((x) => x.id === id);
   if (!a || a.archived) return;
   const loss = Math.min(Math.max(0, a.penalty), state.player.gold);
-  const r = newReceipt('anti', id, dateStr(now));
+  const r = newReceipt('anti', id, dateStr(now), state.todayReceipts.length);
   addGold(state, -loss, 'penalty', `禁忌: ${a.name}`, now); // 经 NaN 守卫 + 记 ledger penalty
   r.goldDelta = -loss; // 通用 undoCheckIn 按 -goldDelta 精确回补
   state.todayReceipts.push(r);
