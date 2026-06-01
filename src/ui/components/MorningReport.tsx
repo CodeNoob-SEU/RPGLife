@@ -5,6 +5,7 @@ import { currentDayStreak } from '../../domain/stats';
 import { HistoryEntry } from '../../domain/types';
 import { colors, pixelBorder, pixelShadow, space } from '../theme';
 import { PixelText, PixelButton } from './Pixel';
+import { useNarrativeReport } from '../hooks/useNarrativeReport';
 
 const STATUS_TEXT: Record<HistoryEntry['status'], { t: string; c: string; icon: string }> = {
   perfect: { t: '全清达成！', c: colors.success, icon: '🌟' },
@@ -28,6 +29,7 @@ export function MorningReport() {
 
   const st = STATUS_TEXT[h.status];
   const streak = currentDayStreak(history, today);
+  const { text: narrative, loading: narrLoading } = useNarrativeReport(yStr);
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: space(4) }}>
       <View style={[{ backgroundColor: colors.bgPanel, padding: space(4), gap: space(2), maxWidth: 420, width: '100%' }, pixelBorder, pixelShadow]}>
@@ -38,6 +40,13 @@ export function MorningReport() {
           <PixelText style={{ color: colors.ink, fontSize: 13 }}>昨日净收益：🪙{h.goldNet}</PixelText>
           <PixelText style={{ color: colors.accent, fontSize: 13 }}>当前连续活跃：🔥{streak} 天</PixelText>
         </View>
+        {narrLoading ? (
+          <PixelText style={{ color: colors.textDim, fontSize: 12, textAlign: 'center' }}>旁白整理中…</PixelText>
+        ) : narrative ? (
+          <View style={[{ backgroundColor: colors.bgDeep, padding: space(3) }, pixelBorder]}>
+            <PixelText style={{ color: colors.ink, fontSize: 13, lineHeight: 20 }}>{narrative}</PixelText>
+          </View>
+        ) : null}
         <PixelText style={{ color: colors.textDim, fontSize: 11, textAlign: 'center' }}>新的一天，继续冒险吧！</PixelText>
         <PixelButton label="开始今天 ⚔" color={colors.success} onPress={() => actions.markReportSeen()} />
       </View>
