@@ -7,6 +7,7 @@ import { RootNavigation } from './src/ui/navigation';
 import { Onboarding } from './src/ui/components/Onboarding';
 import { syncReminder } from './src/ui/notifications';
 import { colors } from './src/ui/theme';
+import { loadApiKey } from './src/services/llm/secureConfig';
 
 export default function App() {
   const [hydrated, setHydrated] = useState(useGameStore.persist.hasHydrated());
@@ -24,6 +25,7 @@ export default function App() {
       useGameStore.getState().actions.rollover();
       const c = useGameStore.getState().config;
       if (c.reminderEnabled) syncReminder(true, c.reminderHour); // 重新安排（跨更新/重装存活）；web no-op
+      void loadApiKey(); // 预热 LLM key 缓存，供 getClient 同步读取
     }
   }, [hydrated]);
 
