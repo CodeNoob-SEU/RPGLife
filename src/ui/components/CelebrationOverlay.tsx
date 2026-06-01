@@ -7,6 +7,7 @@ import { colors, pixelBorder, pixelShadow, space } from '../theme';
 import { PixelText, PixelButton } from './Pixel';
 import { haptics } from '../haptics';
 import { Confetti } from './Confetti';
+import { ACHIEVEMENTS } from '../../domain/achievements';
 
 const TEXT: Record<CelebrationKind, { title: string; color: string }> = {
   levelUp: { title: 'LEVEL UP!', color: colors.gold },
@@ -23,9 +24,11 @@ export function CelebrationOverlay() {
   const pending = useGameStore((s) => s.pendingCelebrations);
   const notice = useGameStore((s) => s.pendingNotice);
   const reduceMotion = useGameStore((s) => s.config.reduceMotion);
+  const pendingAch = useGameStore((s) => s.pendingAchievements);
   const actions = useGameStore((s) => s.actions);
   const head = pending[0];
   const big = head ? BIG.includes(head) : false;
+  const ach = head === 'achievement' && pendingAch[0] ? ACHIEVEMENTS.find((a) => a.id === pendingAch[0]) : undefined;
 
   const opacity = useSharedValue(0);
   const scale = useSharedValue(0.6);
@@ -66,7 +69,7 @@ export function CelebrationOverlay() {
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center', pointerEvents: 'none' }}>
           {!reduceMotion ? <Confetti key={`${head}:${pending.length}`} count={big ? 26 : 16} /> : null}
           <Animated.View style={[{ backgroundColor: colors.bgPanel, paddingVertical: space(4), paddingHorizontal: space(6) }, pixelBorder, pixelShadow, aStyle]}>
-            <PixelText style={{ color: TEXT[head].color, fontSize: 20, textAlign: 'center' }}>{TEXT[head].title}</PixelText>
+            <PixelText style={{ color: TEXT[head].color, fontSize: 20, textAlign: 'center' }}>{ach ? `🏅 ${ach.icon} ${ach.title}` : TEXT[head].title}</PixelText>
           </Animated.View>
         </View>
       ) : null}

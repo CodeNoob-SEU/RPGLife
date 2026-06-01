@@ -32,6 +32,7 @@ export function migrate(persisted: unknown, _fromVersion: number): AppState {
     dailyPerfect: p.dailyPerfect ?? null,
     weeklyPerfect: p.weeklyPerfect ?? null,
     pendingCelebrations: p.pendingCelebrations ?? [],
+    pendingAchievements: p.pendingAchievements ?? [],
     pendingNotice: p.pendingNotice ?? null,
     onboarded: p.onboarded ?? false,
     reportSeenDate: p.reportSeenDate ?? null,

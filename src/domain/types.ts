@@ -63,6 +63,7 @@ export interface AppState {
   dailyPerfect: { date: DateStr; gold: number; exp: number } | null;
   weeklyPerfect: { week: WeekKey; gold: number; exp: number } | null;
   pendingCelebrations: CelebrationKind[];
+  pendingAchievements: string[]; // 与 pendingCelebrations 中的 'achievement' 一一对应（解锁的成就 id 队列，v10+）
   pendingNotice: 'longAbsence' | null;
   onboarded: boolean; // 是否完成首启引导（v6+）
   reportSeenDate: DateStr | null; // 昨日战报最近查看日期（每日仅弹一次，v7+）

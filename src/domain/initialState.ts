@@ -55,7 +55,7 @@ export function createInitialState(now: Date): AppState {
     config: { ...defaultConfig },
     ledger: [], history: {},
     todayReceipts: [], dailyPerfect: null, weeklyPerfect: null,
-    pendingCelebrations: [], pendingNotice: null,
+    pendingCelebrations: [], pendingAchievements: [], pendingNotice: null,
     onboarded: false, reportSeenDate: null,
   };
 }

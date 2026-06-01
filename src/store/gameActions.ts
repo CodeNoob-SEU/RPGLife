@@ -123,7 +123,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   attackBoss: (bossId, damage, now = new Date()) => set((s) => { domainAttackBoss(s, bossId, damage, now); evaluateAchievements(s, now); }),
 
   setConfig: (patch) => set((s) => { Object.assign(s.config, patch); }),
-  consumeCelebration: () => set((s) => { s.pendingCelebrations.shift(); }),
+  consumeCelebration: () => set((s) => { const head = s.pendingCelebrations.shift(); if (head === 'achievement') s.pendingAchievements.shift(); }),
   consumeNotice: () => set((s) => { s.pendingNotice = null; }),
   setOnboarded: (v) => set((s) => { s.onboarded = v; }),
   markReportSeen: (now = new Date()) => set((s) => { s.reportSeenDate = dateStr(now); }),
@@ -132,6 +132,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
     // and scrub transient UI signals so an import can't replay a stale notice/celebration.
     const full = migrate(data, 0);
     full.pendingCelebrations = [];
+    full.pendingAchievements = [];
     full.pendingNotice = null;
     Object.assign(s, full);
   }),

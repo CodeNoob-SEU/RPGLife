@@ -10,6 +10,7 @@ test('解锁满足条件的成就：记录解锁日期 + 推送庆祝', () => {
   expect(newly).toContain('level-5');
   expect(s.achievements.unlockedAt['level-5']).toBe('2026-06-01');
   expect(s.pendingCelebrations.filter((c) => c === 'achievement').length).toBe(newly.length);
+  expect(s.pendingAchievements).toEqual(newly); // 成就 id 队列与解锁一一对应
 });
 
 test('不重复解锁已解锁成就（幂等）', () => {

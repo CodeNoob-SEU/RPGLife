@@ -36,6 +36,7 @@ export function evaluateAchievements(s: AppState, now: Date): string[] {
     if (!s.achievements.unlockedAt[a.id] && a.check(s)) {
       s.achievements.unlockedAt[a.id] = dateStr(now);
       s.pendingCelebrations.push('achievement');
+      s.pendingAchievements.push(a.id); // 与 'achievement' 庆祝一一对应，供 overlay 显示具体成就名
       newly.push(a.id);
     }
   }
