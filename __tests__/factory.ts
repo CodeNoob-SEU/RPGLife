@@ -28,6 +28,7 @@ export function makeState(over: Partial<AppState> = {}): AppState {
     todayReceipts: [], dailyPerfect: null, weeklyPerfect: null,
     pendingCelebrations: [], pendingAchievements: [], pendingNotice: null,
     onboarded: true, reportSeenDate: null,
+    ui: { questsCollapsed: { weekly: true, oneoff: true, anti: true } },
     ...over,
   };
 }

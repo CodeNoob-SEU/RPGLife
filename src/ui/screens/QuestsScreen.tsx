@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, View } from 'react-native';
 import { useGameStore } from '../../store/useGameStore';
 import { dateStr } from '../../domain/dateUtils';
 import { colors, space } from '../theme';
@@ -31,6 +31,9 @@ export function QuestsScreen() {
 
   const [manage, setManage] = useState(false);
   const [showDone, setShowDone] = useState(false);
+  // 分区折叠偏好：持久化在 store（跨重启记住）。默认仅「每日」展开、其余收起，让页面打开即短。
+  const collapsed = useGameStore((s) => s.ui.questsCollapsed);
+  const toggleSection = (k: string) => actions.toggleQuestSection(k);
   const [form, setForm] = useState<{ kind: QuestKind; editId: string | null; initial: QuestDraft } | null>(null);
   const [del, setDel] = useState<{ kind: QuestKind | 'anti'; id: string; name: string } | null>(null);
   const [antiForm, setAntiForm] = useState<{ editId: string | null; initial: AntiDraft } | null>(null);
@@ -103,9 +106,12 @@ export function QuestsScreen() {
     setAntiForm(null);
   };
 
-  const renderHeader = (title: string, kind: QuestKind) => (
+  const renderHeader = (title: string, kind: QuestKind, count: number) => (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space(2) }}>
-      <SectionTitle>{title}</SectionTitle>
+      <Pressable onPress={() => toggleSection(kind)} style={{ flexDirection: 'row', alignItems: 'center', gap: space(2), flex: 1 }}>
+        <PixelText style={{ color: colors.gold, fontSize: 12 }}>{collapsed[kind] ? '▶' : '▼'}</PixelText>
+        <SectionTitle>{count > 0 ? `${title} · ${count}` : title}</SectionTitle>
+      </Pressable>
       <PixelButton label="＋ 发布" color={colors.bgPanel} onPress={() => openAdd(kind)} />
     </View>
   );
@@ -120,10 +126,6 @@ export function QuestsScreen() {
     <View style={{ flex: 1 }}>
       {floatNode}
       <ScrollView style={{ flex: 1, backgroundColor: colors.bgDeep }} contentContainerStyle={{ padding: space(3), gap: space(3) }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'flex-end' }}>
-          <PixelButton label={manage ? '✓ 完成管理' : '✎ 管理'} color={manage ? colors.success : colors.bgPanel} onPress={() => setManage((m) => !m)} />
-        </View>
-
         <PixelPanel style={chestReady ? { borderColor: colors.gold } : { opacity: 0.7 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: space(2) }}>
             <PixelText style={{ fontSize: 24 }}>{chestReady ? '🎁' : '📦'}</PixelText>
@@ -132,16 +134,24 @@ export function QuestsScreen() {
           </View>
         </PixelPanel>
 
-        {categories.length > 0 ? (
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space(2) }}>
-            <PixelButton label="全部" color={catFilter === null ? colors.gold : colors.bgPanel} onPress={() => setCatFilter(null)} />
-            {categories.map((c) => (
-              <PixelButton key={c} label={c} color={catFilter === c ? colors.gold : colors.bgPanel} onPress={() => setCatFilter(c)} />
-            ))}
+        {/* 顶部工具条：分类筛选（左）+ 管理开关（右）。管理不再单独悬浮成一行。 */}
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: space(2) }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: space(2), flex: 1 }}>
+            {categories.length > 0 ? (
+              <>
+                <PixelButton label="全部" color={catFilter === null ? colors.gold : colors.bgPanel} onPress={() => setCatFilter(null)} />
+                {categories.map((c) => (
+                  <PixelButton key={c} label={c} color={catFilter === c ? colors.gold : colors.bgPanel} onPress={() => setCatFilter(c)} />
+                ))}
+              </>
+            ) : null}
           </View>
-        ) : null}
+          <PixelButton label={manage ? '✓ 完成' : '✎ 管理'} color={manage ? colors.success : colors.bgPanel} onPress={() => setManage((m) => !m)} />
+        </View>
 
-        {renderHeader('每日委托', 'daily')}
+        {renderHeader('每日委托', 'daily', dailies.length)}
+        {!collapsed.daily ? (
+        <>
         {dailies.length === 0 ? (
           <EmptyState icon="📜" title="还没有每日委托" hint="点「＋ 发布」添加你想每天坚持的小事，打卡赚金币与经验。" />
         ) : (
@@ -164,8 +174,12 @@ export function QuestsScreen() {
             </PixelPanel>
           );
         })}
+        </>
+        ) : null}
 
-        {renderHeader('每周委托', 'weekly')}
+        {renderHeader('每周委托', 'weekly', weeklies.length)}
+        {!collapsed.weekly ? (
+        <>
         {weeklies.length === 0 ? <EmptyState icon="🗓️" title="还没有每周委托" hint="点「＋ 发布」添加每周目标，比如复盘、大扫除。" /> : null}
         {weeklies.filter((w) => catMatch(w.category)).map((w) => {
           const rid = ridFor('weekly', w.id);
@@ -182,8 +196,12 @@ export function QuestsScreen() {
             </PixelPanel>
           );
         })}
+        </>
+        ) : null}
 
-        {renderHeader('一次性委托', 'oneoff')}
+        {renderHeader('一次性委托', 'oneoff', activeOneoffs.length)}
+        {!collapsed.oneoff ? (
+        <>
         {activeOneoffs.length === 0 && doneOneoffs.length === 0 ? (
           <EmptyState icon="📦" title="还没有一次性委托" hint="一次性的小目标放这里：完成即得奖励，无截止、不惩罚。" />
         ) : null}
@@ -215,11 +233,18 @@ export function QuestsScreen() {
               </PixelPanel>
             ))
           : null}
+        </>
+        ) : null}
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: space(2) }}>
-          <SectionTitle>禁忌（想避免）</SectionTitle>
+          <Pressable onPress={() => toggleSection('anti')} style={{ flexDirection: 'row', alignItems: 'center', gap: space(2), flex: 1 }}>
+            <PixelText style={{ color: colors.gold, fontSize: 12 }}>{collapsed.anti ? '▶' : '▼'}</PixelText>
+            <SectionTitle>{antis.length > 0 ? `禁忌（想避免） · ${antis.length}` : '禁忌（想避免）'}</SectionTitle>
+          </Pressable>
           <PixelButton label="＋ 新增" color={colors.bgPanel} onPress={openAddAnti} />
         </View>
+        {!collapsed.anti ? (
+        <>
         {antis.length === 0 ? (
           <EmptyState icon="🚫" title="还没有禁忌" hint="把想戒掉的行为放这里；每犯一次点「记一次」扣金币，温柔提醒自己。" />
         ) : null}
@@ -239,6 +264,8 @@ export function QuestsScreen() {
             </View>
           </PixelPanel>
         ))}
+        </>
+        ) : null}
       </ScrollView>
 
       <QuestFormModal

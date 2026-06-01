@@ -58,6 +58,7 @@ export interface GameActions {
   consumeNotice: () => void;
   setOnboarded: (v: boolean) => void;
   markReportSeen: (now?: Date) => void;
+  toggleQuestSection: (key: string) => void;
   importState: (data: AppState) => void;
   reset: (now?: Date) => void;
 }
@@ -127,6 +128,7 @@ export const createGameActions = (set: SetFn, _get: GetFn): GameActions => ({
   consumeNotice: () => set((s) => { s.pendingNotice = null; }),
   setOnboarded: (v) => set((s) => { s.onboarded = v; }),
   markReportSeen: (now = new Date()) => set((s) => { s.reportSeenDate = dateStr(now); }),
+  toggleQuestSection: (key) => set((s) => { s.ui.questsCollapsed[key] = !s.ui.questsCollapsed[key]; }),
   importState: (data) => set((s) => {
     // Deep-fill any missing/partial fields via migrate (hand-edited JSON may omit arrays/config),
     // and scrub transient UI signals so an import can't replay a stale notice/celebration.

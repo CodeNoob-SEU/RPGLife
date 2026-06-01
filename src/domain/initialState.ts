@@ -57,5 +57,7 @@ export function createInitialState(now: Date): AppState {
     todayReceipts: [], dailyPerfect: null, weeklyPerfect: null,
     pendingCelebrations: [], pendingAchievements: [], pendingNotice: null,
     onboarded: false, reportSeenDate: null,
+    // 默认仅「每日」展开，其余收起，让委托页打开即短。
+    ui: { questsCollapsed: { weekly: true, oneoff: true, anti: true } },
   };
 }

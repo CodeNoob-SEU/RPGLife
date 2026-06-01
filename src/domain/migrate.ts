@@ -36,6 +36,8 @@ export function migrate(persisted: unknown, _fromVersion: number): AppState {
     pendingNotice: p.pendingNotice ?? null,
     onboarded: p.onboarded ?? false,
     reportSeenDate: p.reportSeenDate ?? null,
+    // 深合并折叠偏好：旧存档无 ui 时取默认；已存的逐键覆盖、缺失键仍保留默认。
+    ui: { questsCollapsed: { ...fresh.ui.questsCollapsed, ...(p.ui?.questsCollapsed ?? {}) } },
     version: CURRENT_VERSION,
   };
 }

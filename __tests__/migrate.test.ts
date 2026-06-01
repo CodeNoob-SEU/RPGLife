@@ -17,6 +17,16 @@ test('migrate returns a full fresh state for garbage input', () => {
   expect(result.dailies.length).toBeGreaterThan(0);
 });
 
+test('migrate defaults ui.questsCollapsed and preserves saved collapse prefs (v11)', () => {
+  // 旧存档无 ui → 取默认（每日展开、每周/一次性/禁忌收起）
+  const upgraded = migrate({ version: 10 } as any, 10);
+  expect(upgraded.ui.questsCollapsed).toEqual({ weekly: true, oneoff: true, anti: true });
+  // 已存偏好：逐键覆盖；缺失键仍保留默认（深合并）
+  const saved = migrate({ version: 11, ui: { questsCollapsed: { weekly: false } } } as any, 11);
+  expect(saved.ui.questsCollapsed.weekly).toBe(false); // 用户展开的保留
+  expect(saved.ui.questsCollapsed.oneoff).toBe(true);  // 缺失键取默认
+});
+
 test('migrate tolerates persisted trials/bosses lacking the new archived field', () => {
   const persisted: any = {
     version: 1,

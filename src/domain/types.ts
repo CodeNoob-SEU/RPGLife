@@ -67,4 +67,6 @@ export interface AppState {
   pendingNotice: 'longAbsence' | null;
   onboarded: boolean; // 是否完成首启引导（v6+）
   reportSeenDate: DateStr | null; // 昨日战报最近查看日期（每日仅弹一次，v7+）
+  // 委托页分区折叠偏好（v11+）。key=daily/weekly/oneoff/anti，true=收起。持久化以跨重启记住。
+  ui: { questsCollapsed: Record<string, boolean> };
 }
