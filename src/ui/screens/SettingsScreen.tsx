@@ -7,6 +7,7 @@ import { ledgerToCSV } from '../../domain/stats';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, PixelTextInput, ConfirmDialog, SectionTitle, PixelToggle } from '../components/Pixel';
 import { syncReminder } from '../notifications';
+import * as Clipboard from 'expo-clipboard';
 
 const FIELDS: Array<{ key: keyof Config; label: string }> = [
   { key: 'goldToYuanRate', label: '金币兑换率（X 金 = ¥1）' },
@@ -34,6 +35,7 @@ export function SettingsScreen() {
   const [exportText, setExportText] = useState('');
   const [importText, setImportText] = useState('');
   const [importMsg, setImportMsg] = useState('');
+  const [copyMsg, setCopyMsg] = useState('');
   const [resetting, setResetting] = useState(false);
   const [reminderHour, setReminderHour] = useState(String(config.reminderHour));
 
@@ -66,6 +68,18 @@ export function SettingsScreen() {
     } catch {
       setImportMsg('❌ JSON 解析失败。');
     }
+  };
+
+  // 一键复制/粘贴（expo-clipboard，web+真机通用，异步）。
+  const copyExport = async () => {
+    try { await Clipboard.setStringAsync(exportText); setCopyMsg('✅ 已复制到剪贴板'); }
+    catch { setCopyMsg('❌ 复制失败（剪贴板不可用）'); }
+  };
+  const pasteImport = async () => {
+    try {
+      const t = await Clipboard.getStringAsync();
+      if (t) { setImportText(t); setImportMsg(''); } else setImportMsg('❌ 剪贴板为空');
+    } catch { setImportMsg('❌ 读取剪贴板失败'); }
   };
 
   return (
@@ -114,9 +128,16 @@ export function SettingsScreen() {
             <View style={{ flex: 1 }}><PixelButton label="导出 JSON（完整存档）" color={colors.bgPanel} onPress={doExport} /></View>
             <View style={{ flex: 1 }}><PixelButton label="导出 CSV（流水账）" color={colors.bgPanel} onPress={() => setExportText(ledgerToCSV(ledger))} /></View>
           </View>
-          {exportText ? <PixelTextInput value={exportText} onChangeText={() => {}} multiline /> : null}
+          {exportText ? (
+            <>
+              <PixelTextInput value={exportText} onChangeText={() => {}} multiline />
+              <PixelButton label="📋 复制到剪贴板" color={colors.bgPanel} onPress={copyExport} />
+              {copyMsg ? <PixelText style={{ color: colors.textDim, fontSize: 12 }}>{copyMsg}</PixelText> : null}
+            </>
+          ) : null}
           <PixelText style={{ color: colors.ink }}>粘贴 JSON 导入（覆盖当前存档）：</PixelText>
-          <PixelTextInput value={importText} onChangeText={setImportText} placeholder='{"version":2,...}' multiline />
+          <PixelButton label="📋 从剪贴板粘贴" color={colors.bgPanel} onPress={pasteImport} />
+          <PixelTextInput value={importText} onChangeText={setImportText} placeholder='{"version":11,...}' multiline />
           <PixelButton label="导入" color={colors.accent} disabled={!importText.trim()} onPress={doImport} />
           {importMsg ? <PixelText style={{ color: colors.ink }}>{importMsg}</PixelText> : null}
         </View>
