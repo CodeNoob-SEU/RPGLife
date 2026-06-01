@@ -6,6 +6,9 @@ import { colors, space } from '../theme';
 import { PixelButton, PixelText, PixelTextInput, PixelModal, ConfirmDialog, SectionTitle, EmptyState } from '../components/Pixel';
 import { BossCard } from '../components/BossCard';
 import { haptics } from '../haptics';
+import { AIGenerateRow } from '../components/AIGenerateRow';
+import { getClient } from '../../services/llm/getClient';
+import { buildBossPrompt, parseBossDraft } from '../../domain/llm/bossDraft';
 
 type Draft = {
   name: string; maxHp: string; damagePerHit: string;
@@ -85,6 +88,24 @@ export function BossScreen() {
         {draft ? (
           <ScrollView style={{ maxHeight: 460 }} contentContainerStyle={{ gap: space(2) }}>
             <PixelText style={{ color: colors.gold, fontWeight: 'bold', fontSize: 16 }}>{editingId ? '编辑 Boss' : '新建 Boss'}</PixelText>
+            {!editingId ? (
+              <AIGenerateRow
+                placeholder="例：30 天内读完 3 本书"
+                onGenerate={async (t) => {
+                  const b = await getClient().generateStructured(buildBossPrompt(t), parseBossDraft);
+                  const r2 = (n: number) => String(Math.round(n * 100) / 100);
+                  setDraft((d) => d ? {
+                    ...d,
+                    name: b.name,
+                    maxHp: String(b.maxHp),
+                    damagePerHit: String(b.damagePerHit),
+                    totalRewardGold: String(b.totalRewardGold),
+                    totalRewardExp: String(b.totalRewardExp),
+                    w0: r2(b.weights[0]), w1: r2(b.weights[1]), w2: r2(b.weights[2]),
+                  } : d);
+                }}
+              />
+            ) : null}
             <PixelText style={{ color: colors.ink }}>名称</PixelText>
             <PixelTextInput value={draft.name} onChangeText={(t) => setDraft({ ...draft, name: t })} placeholder="例：读完一本书" />
             <View style={{ flexDirection: 'row', gap: space(2) }}>
