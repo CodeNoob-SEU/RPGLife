@@ -27,6 +27,17 @@ Phase 1：Plan 1/2 已**合并入 `main`**；Plan 3 已完成（在分支 `feat/
 **验证基线（更新）**：`npm test` → **119 passed（22 套件）**；`npx tsc --noEmit` → clean；expo-web 实测打卡/撤销、全清+升级庆祝、HUD、BossCard、委托 CRUD/一次性、Boss 手动攻击(−damage 精确)、数据页(热力图/成就墙 2/12)、每日宝箱(0→区间内无 NaN)、首启引导→主屏、昨日战报弹出/消费——均通过。
 ⚠️ **预览环境局限（非产品缺陷）**：reanimated 完成回调在无头预览偶不触发 → 庆祝可能"卡住"并被持久化（真机正常，已知）；reload 后 react-navigation Tab 锚点首点偶尔丢失（重点一次或重启预览实例即可）；`preview_screenshot` 偶发 `UnknownVizError`/滞后帧 → 用 `preview_snapshot`/`preview_eval` DOM 核验更可靠。
 
+## 🆕 LLM 接入（2026-06-01，分支 `claude/awesome-satoshi-0da549`）
+
+[spec](specs/2026-06-01-llm-integration-design.md) → [plan](plans/2026-06-01-llm-integration.md) → 逐 task 落地（subagent 驱动，每 task 一 commit）。第一批「插入点」：
+
+- **服务层地基** `src/services/llm/`：`LLMClient` 接口 + `LLMError`（types）；`parseStructured`（抽 JSON+校验+重试 1 次）；`MockLLMClient`；`OpenAICompatClient`（内置 fetch + AbortController 超时 + 错误分类）；`secureConfig`（apiKey 走 expo-secure-store / web localStorage，**绝不进 store/存档**）；`getClient` 工厂（就绪→真实 client，否则 mock）+ `isLLMReady`。
+- **domain/llm 纯函数**（全 TDD）：`validate`（asRecord/clampInt）、`questDraft`、`bossDraft`（weights 归一化）、`reportContext`、`reminder`（仅埋点，未接 notifications）。
+- **UI 接入**：`AIGenerateRow`（通用「✨ AI 生成」行，loading/错误/未配置降级）；战报叙事 `useNarrativeReport`（内存缓存、失败回退静态文案；hook 在 early-return 前无条件调用，合规）；`QuestFormModal` + `BossScreen` 一句话生成草稿（人在环路，仍走原 action 落库，Boss 的 linkedTaskIds 由用户勾选）；设置页「🤖 AI / LLM」分区（`LLMSettingsSection`：开关/baseURL/model/secure key/测试连接）+ `PixelTextInput` 加可选 `secure` prop。
+- **配置**：Config **v11→v12**（`llmEnabled/llmBaseURL/llmModel`；apiKey 不在内）。OpenAI 兼容协议 + 自带 key；未配置/失败时一切回退原有行为。
+
+**验证基线（LLM 接入）**：`npm test` → **162 passed（32 套件，+33）**；`npx tsc --noEmit -p tsconfig.json` → clean；`npx expo export --platform web` → 977 modules 打包成功。⚠️ **未自动验证**：真实 LLM 调用 + UI 三态/生成/「导出不含 key」需用真实 key 在 `npm run web`/真机手动确认（见 plan §3 各 task 的手动验证步骤）。
+
 ## 怎么跑 / 测 / 验
 
 - 单测：`npm test`（领域+store 纯逻辑，ts-jest）
