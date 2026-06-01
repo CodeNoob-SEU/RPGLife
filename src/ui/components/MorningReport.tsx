@@ -25,11 +25,11 @@ export function MorningReport() {
   yd.setDate(yd.getDate() - 1);
   const yStr = dateStr(yd);
   const h = history[yStr];
+  const { text: narrative, loading: narrLoading } = useNarrativeReport(yStr);
   if (!h || reportSeenDate === today) return null;
 
   const st = STATUS_TEXT[h.status];
   const streak = currentDayStreak(history, today);
-  const { text: narrative, loading: narrLoading } = useNarrativeReport(yStr);
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', padding: space(4) }}>
       <View style={[{ backgroundColor: colors.bgPanel, padding: space(4), gap: space(2), maxWidth: 420, width: '100%' }, pixelBorder, pixelShadow]}>
