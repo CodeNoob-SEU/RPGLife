@@ -91,12 +91,12 @@ export function PixelToggle({ value, onValueChange, label }: { value: boolean; o
   );
 }
 
-/** 像素输入框（深底 + 硬边）。numeric 时 keyboardType=numeric。 */
+/** 像素输入框（深底 + 硬边）。numeric 时 keyboardType=numeric。secure 时 secureTextEntry（密码框）。 */
 export function PixelTextInput({
-  value, onChangeText, placeholder, numeric, multiline, style,
+  value, onChangeText, placeholder, numeric, multiline, secure, style,
 }: {
   value: string; onChangeText: (t: string) => void; placeholder?: string;
-  numeric?: boolean; multiline?: boolean; style?: StyleProp<ViewStyle>;
+  numeric?: boolean; multiline?: boolean; secure?: boolean; style?: StyleProp<ViewStyle>;
 }) {
   return (
     <TextInput
@@ -106,6 +106,7 @@ export function PixelTextInput({
       placeholderTextColor={colors.textDim}
       keyboardType={numeric ? 'numeric' : 'default'}
       multiline={multiline}
+      secureTextEntry={secure}
       style={[
         { backgroundColor: colors.bgDeep, color: colors.ink, paddingHorizontal: space(2), paddingVertical: space(2), fontFamily: font.body, minHeight: multiline ? space(20) : undefined, textAlignVertical: multiline ? 'top' : 'center' },
         pixelBorder,

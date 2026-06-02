@@ -5,6 +5,7 @@ import { bestTrialStreak, currentDayStreak, completionRate, heatmapCells, goldTr
 import { ACHIEVEMENTS } from '../../domain/achievements';
 import { colors, pixelBorder, space } from '../theme';
 import { PixelPanel, PixelText, PixelProgressBar, SectionTitle, EmptyState } from '../components/Pixel';
+import { useWeekReview } from '../hooks/useWeekReview';
 
 const LEVEL_COLOR = ['#23263f', colors.danger, colors.panelHi, colors.accent, colors.success];
 const HEATMAP_DAYS = 98; // 14 周
@@ -28,6 +29,7 @@ export function DataScreen() {
   const unlockedAt = achievements.unlockedAt;
   const unlockedCount = Object.keys(unlockedAt).length;
   const today = dateStr(new Date());
+  const { text: weekReviewText, loading: weekReviewLoading } = useWeekReview(today);
   const totals = lifetimeTotals(ledger);
   const cells = heatmapCells(history, today, HEATMAP_DAYS);
   const weeks: Array<typeof cells> = [];
@@ -43,6 +45,19 @@ export function DataScreen() {
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bgDeep }} contentContainerStyle={{ padding: space(3), gap: space(3) }}>
       <SectionTitle>数据总览</SectionTitle>
+
+      {weekReviewLoading ? (
+        <PixelPanel>
+          <PixelText style={{ color: colors.textDim, fontSize: 13 }}>本周复盘整理中…</PixelText>
+        </PixelPanel>
+      ) : weekReviewText ? (
+        <PixelPanel>
+          <View style={{ gap: space(1) }}>
+            <PixelText style={{ color: colors.gold, fontWeight: 'bold' }}>📖 本周复盘</PixelText>
+            <PixelText style={{ color: colors.ink, fontSize: 13, lineHeight: 20 }}>{weekReviewText}</PixelText>
+          </View>
+        </PixelPanel>
+      ) : null}
 
       {!hasData ? (
         <EmptyState icon="📊" title="还没有数据" hint="开始打卡后，这里会汇总你的连续记录、完成率、金币趋势与年度热力图。" />

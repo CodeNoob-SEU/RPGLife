@@ -7,5 +7,6 @@
  *  → v5 每日宝箱(dailyChest + config 区间) → v6 首启引导(onboarded) → v7 昨日战报(reportSeenDate)
  *  → v8 本地提醒(config reminderEnabled/reminderHour) → v9 禁忌任务(antis) → v10 成就名队列(pendingAchievements)
  *  → v11 委托页分区折叠偏好(ui.questsCollapsed)。
+ *  → v12 LLM 接入配置(config llmEnabled/llmBaseURL/llmModel)。
  */
-export const CURRENT_VERSION = 11;
+export const CURRENT_VERSION = 12;

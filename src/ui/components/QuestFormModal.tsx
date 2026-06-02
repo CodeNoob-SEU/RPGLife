@@ -2,6 +2,9 @@ import { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { colors, space } from '../theme';
 import { PixelButton, PixelText, PixelTextInput, PixelModal } from './Pixel';
+import { AIGenerateRow } from './AIGenerateRow';
+import { getClient } from '../../services/llm/getClient';
+import { buildQuestPrompt, parseQuestDraft } from '../../domain/llm/questDraft';
 
 export type QuestKind = 'daily' | 'weekly' | 'oneoff';
 export type QuestDraft = { name: string; gold: string; exp: string; icon: string; category: string };
@@ -39,6 +42,19 @@ export function QuestFormModal({
   return (
     <PixelModal visible={visible} onRequestClose={onCancel}>
       <PixelText style={{ color: colors.gold, fontWeight: 'bold', fontSize: 16 }}>{editing ? '编辑' : '发布'}{LABEL[kind]}</PixelText>
+      {!editing ? (
+        <AIGenerateRow
+          placeholder="例：我想每天早起跑步 30 分钟"
+          onGenerate={async (t) => {
+            const q = await getClient().generateStructured(buildQuestPrompt(t), parseQuestDraft);
+            setName(q.name);
+            setGold(String(q.gold));
+            setExp(String(q.exp));
+            setIcon(q.icon);
+            setCategory(q.category ?? '');
+          }}
+        />
+      ) : null}
       <View style={{ flexDirection: 'row', gap: space(2) }}>
         <View style={{ width: space(18), gap: space(1) }}>
           <PixelText style={{ color: colors.ink }}>图标</PixelText>

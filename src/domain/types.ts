@@ -40,6 +40,8 @@ export interface Config {
   dailyChestMin: number; dailyChestMax: number;
   // 本地每日提醒（v8+）：开关 + 提醒小时(0-23)。
   reminderEnabled: boolean; reminderHour: number;
+  // LLM 接入（v12+）：总开关 + OpenAI 兼容 baseURL + 模型名。apiKey 不在此（走 SecureStore，不入存档）。
+  llmEnabled: boolean; llmBaseURL: string; llmModel: string;
 }
 export interface BossHit { bossId: string; damage: number; clearedStages: number[]; defeated: boolean; }
 export interface Receipt {

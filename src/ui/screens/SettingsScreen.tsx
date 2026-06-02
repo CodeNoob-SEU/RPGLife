@@ -6,6 +6,7 @@ import { CURRENT_VERSION } from '../../domain/version';
 import { ledgerToCSV } from '../../domain/stats';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, PixelTextInput, ConfirmDialog, SectionTitle, PixelToggle } from '../components/Pixel';
+import { LLMSettingsSection } from '../components/LLMSettingsSection';
 import { syncReminder } from '../notifications';
 import * as Clipboard from 'expo-clipboard';
 
@@ -120,6 +121,8 @@ export function SettingsScreen() {
           <PixelText style={{ color: colors.textDim, fontSize: 11 }}>每天 {config.reminderHour}:00 提醒你回来冒险。需系统通知权限；网页端不生效，真机有效。</PixelText>
         </View>
       </PixelPanel>
+
+      <LLMSettingsSection />
 
       <SectionTitle>导出 / 导入存档</SectionTitle>
       <PixelPanel>

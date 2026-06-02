@@ -1,5 +1,9 @@
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
+import { useGameStore } from '../store/useGameStore';
+import { dateStr } from '../domain/dateUtils';
+import { getClient, isLLMReady } from '../services/llm/getClient';
+import { buildReminderPrompt } from '../domain/llm/reminder';
 
 /** 鼓励式（非羞辱）提醒文案，随机一条。 */
 const MESSAGES = [
@@ -11,6 +15,21 @@ const MESSAGES = [
 ];
 
 const REMINDER_ID = 'rpglife-daily-reminder';
+
+/** 提醒 body：就绪时用 LLM 生成贴合当前状态的一句，失败/未配置回退随机静态文案。 */
+async function reminderBody(): Promise<string> {
+  const fallback = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
+  if (!isLLMReady()) return fallback;
+  try {
+    const text = await getClient().generateText(
+      buildReminderPrompt(useGameStore.getState(), dateStr(new Date())),
+      { maxTokens: 64, temperature: 0.9 },
+    );
+    return text.trim() || fallback;
+  } catch {
+    return fallback;
+  }
+}
 
 /** 请求通知权限（仅原生；web 或失败返回 false，绝不抛错）。 */
 export async function ensurePermission(): Promise<boolean> {
@@ -30,7 +49,7 @@ export async function scheduleDailyReminder(hour: number): Promise<void> {
   if (Platform.OS === 'web') return;
   try {
     await cancelDailyReminder();
-    const body = MESSAGES[Math.floor(Math.random() * MESSAGES.length)];
+    const body = await reminderBody();
     await Notifications.scheduleNotificationAsync({
       identifier: REMINDER_ID,
       content: { title: 'RPGLife', body },
