@@ -47,6 +47,24 @@ npm run build:android:prod     # production：AAB，用于上架 Google Play
 
 把下载的 `.apk` 传到安卓手机，在系统里允许「未知来源 / 此来源安装」后点击安装即可。`preview` 产出的是**通用 APK**，覆盖 arm64-v8a / armeabi-v7a，主流机型可直接装。
 
+## 🤖 Tag 自动发版到 GitHub Release（CI）
+
+推送 `v*` tag 即由 GitHub Actions 自动用 EAS 云构建 APK 并发布到 **GitHub Releases**。Workflow 见 [`.github/workflows/release-apk.yml`](../.github/workflows/release-apk.yml)。
+
+**一次性配置**（仅一个 secret）：repo → Settings → Secrets and variables → Actions → **New repository secret**，名称 `EXPO_TOKEN`，值在 <https://expo.dev> → Account settings → Access tokens 生成（账号需有本项目权限）。`GITHUB_TOKEN` 由 Actions 自动提供，无需配置。
+
+**发版流程**：
+
+1. 在 [app.json](../app.json) 把 `version` 与 `android.versionCode` **+1**（versionCode 必须递增，否则装到旧版机器无法覆盖升级）。
+2. 提交后打 tag 并推送：
+   ```bash
+   git tag v1.0.1
+   git push origin v1.0.1
+   ```
+3. Actions 自动：EAS 云构建 preview APK → 下载 → 创建名为 `v1.0.1` 的 Release，挂上 `rpglife-v1.0.1.apk`（含自动生成的 changelog）。
+
+构建用 EAS 托管的签名 keystore，与 `npm run build:android` 出的包**签名一致、可互相覆盖安装**。单次约 10–20 分钟（走 Expo 云构建额度）。
+
 ## 故障排查
 
 - **`unbound variable`（bash）**：脚本已兼容 macOS 自带的 bash 3.2（空数组 + `set -u` 的坑），无需处理。
