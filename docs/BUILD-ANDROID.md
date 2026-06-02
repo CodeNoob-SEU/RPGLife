@@ -47,6 +47,24 @@ npm run build:android:prod     # production：AAB，用于上架 Google Play
 
 把下载的 `.apk` 传到安卓手机，在系统里允许「未知来源 / 此来源安装」后点击安装即可。`preview` 产出的是**通用 APK**，覆盖 arm64-v8a / armeabi-v7a，主流机型可直接装。
 
+## 🤖 Tag 自动发版到 GitHub Release（CI）
+
+推送 `v*` tag 即由 GitHub Actions 自动用 EAS 云构建 APK 并发布到 **GitHub Releases**。Workflow 见 [`.github/workflows/release-apk.yml`](../.github/workflows/release-apk.yml)。
+
+**一次性配置**（仅一个 secret）：repo → Settings → Secrets and variables → Actions → **New repository secret**，名称 `EXPO_TOKEN`，值在 <https://expo.dev> → Account settings → Access tokens 生成（账号需有本项目权限）。`GITHUB_TOKEN` 由 Actions 自动提供，无需配置。
+
+**发版流程**：
+
+1. 在 [app.json](../app.json) 把 `version` 与 `android.versionCode` **+1**（versionCode 必须递增，否则装到旧版机器无法覆盖升级）。
+2. 提交后打 tag 并推送：
+   ```bash
+   git tag v1.0.1
+   git push origin v1.0.1
+   ```
+3. Actions 自动：EAS 云构建 preview APK → 下载 → 创建名为 `v1.0.1` 的 Release，挂上 `rpglife-v1.0.1.apk`（含自动生成的 changelog）。
+
+构建用 EAS 托管的签名 keystore，与 `npm run build:android` 出的包**签名一致、可互相覆盖安装**。单次约 10–20 分钟（走 Expo 云构建额度）。
+
 ## 故障排查
 
 - **`unbound variable`（bash）**：脚本已兼容 macOS 自带的 bash 3.2（空数组 + `set -u` 的坑），无需处理。
@@ -61,7 +79,7 @@ npm run build:android:prod     # production：AAB，用于上架 Google Play
 | 场景 | 操作 | 用户侧效果 |
 | --- | --- | --- |
 | **纯 JS 小修** | **不动** `app.json` 的 `version`；`eas update --channel preview --message "..."` | 点「检查更新」→ 发现热更新 → 重启生效，无需重装 |
-| **原生 / 大版本** | `app.json` 的 `version` **与** `android.versionCode` 都 +1 → `npm run build:android` → 在 GitHub 建 Release（tag `v<version>`，上传产出的 `.apk`） | 点「检查更新」→ 发现新安装包 → 前往下载安装 |
+| **原生 / 大版本** | `app.json` 的 `version` **与** `android.versionCode` 都 +1 → 推 `v<version>` tag（CI [`release-apk.yml`](../.github/workflows/release-apk.yml) 自动 EAS 构建并发 GitHub Release，见上文「🤖 Tag 自动发版」） | 点「检查更新」→ 发现新安装包 → 前往下载安装 |
 
 > ⚠️ **APK 检测前提**：每个面向用户的 APK 发布都必须 bump 语义化 `version` 并发 GitHub Release（tag 形如 `v1.1.0`）。仅 +`versionCode`、`version` 长期不变会让 APK 检测「看不见」更新。
 >
@@ -74,11 +92,10 @@ npm run build:android:prod     # production：AAB，用于上架 Google Play
 ### 设备端验证清单（CI/web 无法端到端验证，需真机自验）
 
 **OTA 路径：**
-1. `npm run build:android` 出带 expo-updates 的 preview APK，装到真机。
-2. 改一处 JS（如某文案），`eas update --channel preview --message "test ota"` 发布。
+1. 出一个带 expo-updates 的 preview APK 装到真机（推 `v<version>` tag 走 CI，或本地 `npm run build:android`）。
+2. 改一处 JS（如某文案），`eas update --channel preview --message "test ota"` 发布（channel 与 preview profile 一致）。
 3. 真机打开 App → 设置 → 检查更新 → 应弹「发现热更新」→ 立即更新 → 应用重启后看到改动。
 
 **APK 路径：**
-1. `app.json` 的 `version` 改为比当前高（如 `1.0.1`）、`versionCode` +1，`npm run build:android`。
-2. 在 GitHub 建 Release：tag `v1.0.1`，上传该 `.apk`。
-3. 旧版本真机 → 检查更新 → 应弹「发现新版本 v1.0.1」→ 前往下载 → 跳转到 APK 下载。
+1. `app.json` 的 `version` 改为比当前高（当前已是 1.0.1，故用 `1.0.2`）、`versionCode` +1，提交后推 `v1.0.2` tag → CI 自动构建并发布 Release `v1.0.2`（挂 `rpglife-v1.0.2.apk`）。
+2. 旧版本真机 → 检查更新 → 应弹「发现新版本 v1.0.2」→ 前往下载 → 跳转到 APK 下载。

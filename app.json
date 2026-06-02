@@ -2,7 +2,7 @@
   "expo": {
     "name": "RPGLife",
     "slug": "rpglife",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "runtimeVersion": {
       "policy": "appVersion"
     },
@@ -18,7 +18,7 @@
     },
     "android": {
       "package": "com.codenoob.rpglife",
-      "versionCode": 3,
+      "versionCode": 4,
       "adaptiveIcon": {
         "backgroundColor": "#1a1c2c",
         "foregroundImage": "./assets/android-icon-foreground.png",
