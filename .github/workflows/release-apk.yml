@@ -1,0 +1,72 @@
+name: Release APK
+
+# 推送 v* tag 时：用 EAS 云端构建通用 APK，并发布到 GitHub Release。
+#
+# 一次性配置（仅需一个 secret）：
+#   repo → Settings → Secrets and variables → Actions → New repository secret
+#   名称 EXPO_TOKEN，值在 https://expo.dev → Account settings → Access tokens 生成
+#   （该账号需有本项目 @sharkyovo/rpglife 的权限）。
+# GITHUB_TOKEN 由 Actions 自动提供，无需配置。
+#
+# 发版流程：先把 app.json 的 version 与 android.versionCode +1，再：
+#   git tag v1.0.1 && git push origin v1.0.1
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write          # gh release create 需要写入 Releases
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Build Android APK on EAS (preview profile)
+        run: |
+          set -euo pipefail
+          # --wait 阻塞至云端构建完成；--json 把构建对象数组输出到 stdout
+          eas build --platform android --profile preview --non-interactive --wait --json > build.json
+          echo "----- eas build --json 输出 -----"
+          cat build.json
+          APK_URL="$(jq -r '.[0].artifacts.applicationArchiveUrl // empty' build.json)"
+          if [ -z "$APK_URL" ]; then
+            echo "::error::未能从 eas build --json 解析 APK 下载链接。请对照上方 build.json 调整 jq 路径（artifacts.applicationArchiveUrl）。"
+            exit 1
+          fi
+          echo "APK_URL=$APK_URL" >> "$GITHUB_ENV"
+
+      - name: Download APK
+        run: |
+          set -euo pipefail
+          curl -fL -o "rpglife-${GITHUB_REF_NAME}.apk" "$APK_URL"
+          ls -lh "rpglife-${GITHUB_REF_NAME}.apk"
+
+      - name: Create GitHub Release with APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          gh release create "${GITHUB_REF_NAME}" \
+            "rpglife-${GITHUB_REF_NAME}.apk" \
+            --title "${GITHUB_REF_NAME}" \
+            --generate-notes
