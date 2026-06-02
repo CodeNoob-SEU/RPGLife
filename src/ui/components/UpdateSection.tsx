@@ -49,14 +49,18 @@ export function UpdateSection() {
     const action = dialog;
     setDialog(null);
     if (action?.kind === 'apk') {
-      Linking.openURL(action.url);
+      Linking.openURL(action.url).catch(() => setStatus('无法打开下载链接'));
       return;
     }
     if (action?.kind === 'ota') {
       setBusy(true);
       setStatus('下载中，完成后将重启…');
       try {
-        await applyOta(); // 成功则重启，下面不会执行
+        const restarting = await applyOta(); // 有新内容则重启，下面不会执行
+        if (!restarting) {
+          setBusy(false);
+          setStatus('未获取到更新内容，请稍后再试');
+        }
       } catch {
         setBusy(false);
         setStatus('热更新失败，请稍后再试');

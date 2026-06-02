@@ -37,10 +37,12 @@ export async function checkApk(currentVersion: string): Promise<ApkResult> {
   if (compareVersions(latest, currentVersion) !== 1) return { available: false };
 
   const apkAsset = (data.assets ?? []).find((a) => a.name.toLowerCase().endsWith('.apk'));
+  const url = apkAsset?.browser_download_url ?? data.html_url;
+  if (!url) return { available: false }; // 无可用下载链接则不声称有更新，保持「available ⟹ 有真实 url」不变式
   return {
     available: true,
     latestVersion: latest.replace(/^v/i, ''),
-    url: apkAsset?.browser_download_url ?? data.html_url ?? '',
-    notes: data.body ? data.body.slice(0, 300) : undefined,
+    url,
+    notes: data.body ? (data.body.length > 300 ? data.body.slice(0, 300) + '…' : data.body) : undefined,
   };
 }

@@ -33,6 +33,11 @@ test('no .apk asset → falls back to release html_url', async () => {
   expect(r.url).toBe('https://gh/rel');
 });
 
+test('newer version but no apk asset and no html_url → not available (no usable url)', async () => {
+  (global as any).fetch = jest.fn().mockReturnValue(ghRelease({ tag_name: 'v2.0.0', assets: [] }));
+  expect(await checkApk('1.0.0')).toEqual({ available: false });
+});
+
 test('404 (no releases yet) → not available, no error', async () => {
   (global as any).fetch = jest.fn().mockReturnValue(ghRelease({}, 404));
   expect(await checkApk('1.0.0')).toEqual({ available: false });
