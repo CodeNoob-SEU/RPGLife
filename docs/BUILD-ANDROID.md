@@ -71,3 +71,31 @@ npm run build:android:prod     # production：AAB，用于上架 Google Play
 - **脚本退出 0，但 EAS 上没有新构建**：通常是 EAS 服务故障导致"提交"这一步被静默挡下。先看 <https://status.expo.dev>，恢复后重跑 `npm run build:android` 即可（鉴权、密钥等前置不用重做）。
 - **`EACCES` / npm 缓存报错**：仓库根的 `.npmrc` 已把缓存指到 `/tmp/rpglife-npm-cache`（机器本地、已 gitignore）。换新机器若复现该报错，照样重建这个 `.npmrc`（或给 npm 传 `--cache /tmp/rpglife-npm-cache`）。
 - **首次构建**会在 EAS 服务器端生成并托管 Android 签名 keystore，之后自动复用——本地不需要 Android SDK / JDK17。
+
+## 应用内更新（OTA 优先 + APK 兜底）
+
+设置页「关于与更新 → 检查更新」会并行查两路：**OTA 热更新**（expo-updates / EAS Update）优先，**GitHub Releases 新 APK** 兜底。两条发版路径：
+
+| 场景 | 操作 | 用户侧效果 |
+| --- | --- | --- |
+| **纯 JS 小修** | **不动** `app.json` 的 `version`；`eas update --channel preview --message "..."` | 点「检查更新」→ 发现热更新 → 重启生效，无需重装 |
+| **原生 / 大版本** | `app.json` 的 `version` **与** `android.versionCode` 都 +1 → 推 `v<version>` tag（CI [`release-apk.yml`](../.github/workflows/release-apk.yml) 自动 EAS 构建并发 GitHub Release，见上文「🤖 Tag 自动发版」） | 点「检查更新」→ 发现新安装包 → 前往下载安装 |
+
+> ⚠️ **APK 检测前提**：每个面向用户的 APK 发布都必须 bump 语义化 `version` 并发 GitHub Release（tag 形如 `v1.1.0`）。仅 +`versionCode`、`version` 长期不变会让 APK 检测「看不见」更新。
+>
+> `runtimeVersion` 用 `appVersion` 策略：`version` 不变 → 同一 OTA 流（热更新能送达老安装）；`version` 变 → 新 runtime + 新 APK，两条路天然隔离。
+
+### 首次落地（鸡生蛋）
+
+`expo-updates` / `expo-application` 是原生依赖，加入后**必须重新构建并安装一次 APK**，本功能才生效；已装的旧 APK 无法通过 OTA 获得此功能。
+
+### 设备端验证清单（CI/web 无法端到端验证，需真机自验）
+
+**OTA 路径：**
+1. 出一个带 expo-updates 的 preview APK 装到真机（推 `v<version>` tag 走 CI，或本地 `npm run build:android`）。
+2. 改一处 JS（如某文案），`eas update --channel preview --message "test ota"` 发布（channel 与 preview profile 一致）。
+3. 真机打开 App → 设置 → 检查更新 → 应弹「发现热更新」→ 立即更新 → 应用重启后看到改动。
+
+**APK 路径：**
+1. `app.json` 的 `version` 改为比当前高（当前已是 1.0.1，故用 `1.0.2`）、`versionCode` +1，提交后推 `v1.0.2` tag → CI 自动构建并发布 Release `v1.0.2`（挂 `rpglife-v1.0.2.apk`）。
+2. 旧版本真机 → 检查更新 → 应弹「发现新版本 v1.0.2」→ 前往下载 → 跳转到 APK 下载。

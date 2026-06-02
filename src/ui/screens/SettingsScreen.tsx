@@ -7,6 +7,7 @@ import { ledgerToCSV } from '../../domain/stats';
 import { colors, space } from '../theme';
 import { PixelPanel, PixelButton, PixelText, PixelTextInput, ConfirmDialog, SectionTitle, PixelToggle } from '../components/Pixel';
 import { LLMSettingsSection } from '../components/LLMSettingsSection';
+import { UpdateSection } from '../components/UpdateSection';
 import { syncReminder } from '../notifications';
 import * as Clipboard from 'expo-clipboard';
 
@@ -145,6 +146,8 @@ export function SettingsScreen() {
           {importMsg ? <PixelText style={{ color: colors.ink }}>{importMsg}</PixelText> : null}
         </View>
       </PixelPanel>
+
+      <UpdateSection />
 
       <SectionTitle>危险区</SectionTitle>
       <PixelButton label="清空并重置为初始状态" color={colors.danger} onPress={() => setResetting(true)} />
